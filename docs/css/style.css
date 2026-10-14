@@ -19,7 +19,7 @@ body {
 }
 [hidden] { display: none !important; }
 
-#frame { position: relative; width: 1000px; height: 800px; }
+#frame { position: relative; width: 1000px; height: 800px; overflow: hidden; }
 #stage {
   position: absolute; left: 0; top: 0; width: 1000px; height: 800px;
   transform-origin: 0 0; user-select: none; -webkit-user-select: none; touch-action: none;
@@ -121,17 +121,23 @@ body {
 #sceneType .track.on { opacity: 1; }
 #sceneType .carriage { position: absolute; left: 0; top: 30px; width: 612px; height: 468px; will-change: transform; }
 #sceneType .carriage > svg.body { position: absolute; inset: 0; width: 612px; height: 468px; }
-#sceneType .paperClip { position: absolute; left: 151px; top: 18px; width: 310px; height: 284px; overflow: hidden; pointer-events: none; }
+/* the sheet is hidden only where it goes down behind the platen; above, it is free, edges and all */
+#sceneType .paperClip { position: absolute; left: 151px; top: 0; width: 310px; height: 302px; overflow: visible; clip-path: inset(-1200px -14px 0 -14px); pointer-events: none; }
 #sceneType .lines { position: absolute; left: 0; top: 0; width: 310px; will-change: transform; }
 #sceneType .paperFace {
-  position: absolute; left: 0; top: -1200px; width: 310px; height: 1740px;
-  border-left: 1.5px solid #8a8a8a; border-right: 1.5px solid #8a8a8a; background-color: #f4f4f4;
+  /* a real sheet, the same proportions as the papers on the desk (310 × 418) */
+  position: absolute; left: 0; top: 218px; width: 310px; height: 418px;
+  border: 1.5px solid #8a8a8a; border-radius: 2px; background-color: #f4f4f4;
+  box-shadow: 3px 4px 0 rgba(0,0,0,.1);
 }
 #sceneType .paperFace.lined {
   background-color: #ececec;
   background-image:
+    linear-gradient(#ececec, #ececec),
     linear-gradient(to right, transparent 19px, #9a9a9a 19px, #9a9a9a 20px, transparent 20px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 11px, #b0b0b0 11px, #b0b0b0 12px, transparent 12px, transparent 26px);
+    repeating-linear-gradient(to bottom, transparent 0, transparent 15px, #b0b0b0 15px, #b0b0b0 16px, transparent 16px, transparent 26px);
+  background-size: 100% 36px, auto, auto;
+  background-repeat: no-repeat, repeat, repeat;
 }
 #sceneType .paperFace.grid {
   background-color: #e6e6e6;

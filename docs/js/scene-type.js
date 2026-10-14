@@ -173,7 +173,7 @@ LP.scenes.type = (() => {
     node.textContent = ch;
     const slot = jam ? Math.max(0, pos - 1) : pos;
     node.style.left = (LINE_X - 151 + slot * CW - 0.5) + 'px';
-    node.style.top = (250 + row * LINE_H) + 'px';
+    node.style.top = (268 + row * LINE_H) + 'px';
     node.style.opacity = 0;
     if (jam) node.style.transform = `translate(${(Math.random() - .5) * 6}px, ${(Math.random() - .5) * 5}px) rotate(${(Math.random() - .5) * 16}deg)`;
     linesEl.appendChild(node);
@@ -419,17 +419,17 @@ LP.scenes.type = (() => {
     setLeverReady(false);
     marker.classList.add('off');
     leverTip.classList.remove('on'); keyTip.classList.remove('on');
-    LP.say(full ? 'Your page is full. Take a slow breath.' : 'Your page is ready. Take a slow breath.');
-    let i = 0;
-    const base = Math.min(paperY, -row * LINE_H);
+    LP.quiet();                                  // the sheet rises into the space where the guiding line was
     const lines = Array.from({ length: ROWS_N }, (_, k) => finishedRows[k] || '');
     while (lines.length && !lines[lines.length - 1].trim()) lines.pop();   // no empty lines after the last words
+    // turn the roller notch by notch until the bottom edge of the sheet comes up out of it
+    const OUT = -380;
+    outTarget = Math.min(paperY, -row * LINE_H);
     (function step() {
-      i++;
-      outTarget = base - i * 46;
+      outTarget = Math.max(OUT, outTarget - 30);
       A.tick(1100 + Math.random() * 120, .04, .02);
-      if (i < 13) setTimeout(step, 170);
-      else setTimeout(() => LP.seq.next('keep', { paper, lines }), 1500);
+      if (outTarget > OUT) setTimeout(step, 150);
+      else { A.slide(.5, .05); setTimeout(() => LP.seq.next('keep', { paper, lines }), 1700); }
     })();
   }
 
