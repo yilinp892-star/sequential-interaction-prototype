@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A Page for Yourself</title>
+<meta name="description" content="A quiet typewriter diary: choose a sheet, type a page to yourself, sign it and put it away.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="frame">
+  <div id="stage">
+    <div id="guide" aria-live="polite"></div>
+
+    <!-- 1 · Feel and feed the paper (from studies/01-feed-the-paper) -->
+    <section id="sceneFeed" class="scene" aria-label="Choose and feed the paper">
+      <div class="ghost"></div>
+      <div class="roller">
+        <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="60" r="18" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+          <circle cx="298" cy="60" r="18" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+          <rect x="36" y="34" width="248" height="52" rx="26" fill="#3a3a3a"/>
+          <rect x="36" y="38" width="248" height="14" rx="7" fill="#5a5a5a"/>
+          <rect x="60" y="22" width="200" height="8" rx="2" fill="#1e1e1e"/>
+          <g stroke="#9a9a9a" stroke-width="1.5"><line x1="60" y1="14" x2="60" y2="22"/><line x1="260" y1="14" x2="260" y2="22"/></g>
+          <rect x="44" y="92" width="232" height="6" rx="3" fill="#c8c8c8"/>
+        </svg>
+        <div class="stripes"></div>
+      </div>
+      <div class="slotGlow"></div>
+      <div class="clip"></div>
+      <div class="touch"></div>
+    </section>
+
+    <!-- 2 · Strike the keys + return the carriage (from studies/02 and 03) -->
+    <section id="sceneType" class="scene" aria-label="Type your page">
+      <svg class="track" viewBox="0 0 1000 740" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="carriage">
+        <svg class="body" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="176" width="300" height="20" rx="4" fill="#5e5e5e"/>
+          <rect x="40" y="168" width="260" height="44" rx="22" fill="#3a3a3a"/>
+          <rect x="40" y="172" width="260" height="12" rx="6" fill="#5a5a5a"/>
+          <circle cx="26" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+          <circle cx="314" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+          <rect x="10" y="232" width="320" height="6" rx="3" fill="#9a9a9a"/>
+          <g fill="#7a7a7a">
+            <rect x="30" y="232" width="2" height="6"/><rect x="60" y="232" width="2" height="6"/><rect x="90" y="232" width="2" height="6"/><rect x="120" y="232" width="2" height="6"/><rect x="150" y="232" width="2" height="6"/><rect x="180" y="232" width="2" height="6"/><rect x="210" y="232" width="2" height="6"/><rect x="240" y="232" width="2" height="6"/><rect x="270" y="232" width="2" height="6"/><rect x="300" y="232" width="2" height="6"/>
+          </g>
+        </svg>
+        <div class="stripes"></div>
+        <svg class="needle" viewBox="-100 0 140 500" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 336 H-51 V462" fill="none" stroke="#5e5e5e" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M-59 462 H-43 L-51 474 Z" fill="#2e2e2e"/>
+        </svg>
+        <div class="paperClip"><div class="lines"><div class="paperFace"></div></div></div>
+        <div class="lever">
+          <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+            <rect x="70" y="96" width="40" height="30" rx="4" fill="#5e5e5e"/>
+            <circle cx="90" cy="110" r="6" fill="#3a3a3a"/>
+            <path d="M90 110 C 70 80, 40 60, 22 30" fill="none" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/>
+            <rect x="6" y="10" width="34" height="22" rx="11" fill="#2a2a2a" stroke="#111" stroke-width="1.5"/>
+            <line x1="14" y1="21" x2="32" y2="21" stroke="#6a6a6a" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div class="gripPulse"></div>
+          <div class="grip" aria-label="Return lever"></div>
+        </div>
+      </div>
+      <div class="marker"></div>
+      <div class="bars"></div>
+      <div class="keys"></div>
+      <div class="keyTip">hold to rewind</div>
+      <div class="touch"></div>
+    </section>
+
+    <!-- 3 · Sign, fold, put it in the drawer (from studies/04-sign-and-seal) -->
+    <section id="sceneKeep" class="scene" aria-label="Sign and put the page away">
+      <div class="desk-slot"></div>
+      <div class="drawer-in"><div class="drawer-content"></div></div>
+      <div class="drawer-front"></div>
+      <div class="letter">
+        <div class="topHalf half">
+          <svg class="topFront" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="topBack"></div>
+        </div>
+        <div class="botHalf half">
+          <div class="inner">
+            <svg class="botFront" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg"></svg>
+            <canvas class="demoInk" width="520" height="676"></canvas>
+            <canvas class="ink" width="520" height="676"></canvas>
+          </div>
+        </div>
+        <div class="signZone"></div>
+        <div class="grabZone"></div>
+      </div>
+      <div class="touch"></div>
+    </section>
+
+    <button id="newPage" type="button" hidden>Begin a new page</button>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/papers.js"></script>
+<script src="js/scene-feed.js"></script>
+<script src="js/scene-type.js"></script>
+<script src="js/scene-keep.js"></script>
+<script src="js/sequence.js"></script>
+</body>
+</html>

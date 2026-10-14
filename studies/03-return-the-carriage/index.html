@@ -1,0 +1,367 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Return the Carriage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap">
+<style>
+  /* Layout: fixed 1000×580 desk stage scaled to fit; carriage (same size as Study 2) pushed to the end of its line, lever at its left, notched track below. Grayscale only. */
+  :root {
+    --bg: #e4e4e3;
+    --ink: #1b1b1b;
+    --soft: #9a9a9a;
+    --type: "Courier Prime", "Courier New", Courier, monospace;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px; box-sizing: border-box;
+    display: flex; justify-content: center; align-items: center; overflow: hidden;
+  }
+  #frame { width: 100%; max-width: 1000px; position: relative; }
+  #stage {
+    position: absolute; left: 0; top: 0; width: 1000px; height: 580px;
+    transform-origin: 0 0; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #carriage { position: absolute; left: 0; top: 30px; width: 612px; height: 468px; will-change: transform; }
+  #carriage > svg.body { position: absolute; inset: 0; width: 612px; height: 468px; }
+  #paperClip { position: absolute; left: 151px; top: 18px; width: 310px; height: 284px; overflow: hidden; pointer-events: none; }
+  #lines { position: absolute; left: 0; top: 0; width: 310px; will-change: transform; }
+  .line { position: absolute; left: 29px; font-family: var(--type); font-size: 18px; line-height: 1; color: var(--ink); white-space: pre; }
+  #stripes {
+    position: absolute; left: 72px; top: 302px; width: 468px; height: 79px; border-radius: 40px;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 3px, rgba(255,255,255,0) 3px 11px);
+    pointer-events: none;
+  }
+  #needle { position: absolute; left: -100px; top: 0; width: 140px; height: 500px; overflow: visible; pointer-events: none; }
+  #lever { position: absolute; left: -81px; top: 187px; width: 156px; height: 182px; transform-origin: 117px 143px; will-change: transform; }
+  #lever svg { width: 156px; height: 182px; display: block; }
+  #grip { position: absolute; left: 0; top: 4px; width: 62px; height: 48px; border-radius: 24px; cursor: grab; }
+  #grip.held { cursor: grabbing; }
+  #gripPulse {
+    position: absolute; left: 7px; top: 13px; width: 45px; height: 29px; border-radius: 15px;
+    border: 1.5px solid var(--ink); opacity: 0; pointer-events: none;
+  }
+  #gripPulse.on { animation: ping 1.6s ease-out infinite; }
+  @keyframes ping { 0% { opacity: .55; transform: scale(1) } 70%,100% { opacity: 0; transform: scale(1.7) } }
+  @media (prefers-reduced-motion: reduce) { #gripPulse.on { animation: none; opacity: .4; } }
+  #track { position: absolute; left: 0; top: 0; width: 1000px; height: 580px; pointer-events: none; }
+  #marker { position: absolute; width: 11px; height: 2px; background: var(--ink); animation: blink 1s steps(1) infinite; pointer-events: none; opacity: 0; transition: opacity .2s; }
+  @keyframes blink { 50% { visibility: hidden } }
+  #touch {
+    position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(40,40,40,.16); border: 1.5px solid rgba(40,40,40,.38);
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    opacity: 0; transition: opacity .35s ease; pointer-events: none; z-index: 20;
+  }
+  #reset {
+    position: absolute; right: 12px; top: 12px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--soft); background: var(--bg); color: var(--ink);
+    cursor: pointer; display: grid; place-items: center; z-index: 50;
+  }
+  #reset:hover { background: #d8d8d7; }
+  #reset:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  #reset svg { width: 18px; height: 18px; }
+</style>
+
+<div id="frame">
+  <div id="stage">
+    <svg id="track" viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="carriage">
+      <svg class="body" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+        <rect x="84" y="10" width="172" height="170" fill="#f2f2f2" stroke="#8a8a8a" stroke-width="1.5"/>
+        <rect x="20" y="176" width="300" height="20" rx="4" fill="#5e5e5e"/>
+        <rect x="40" y="168" width="260" height="44" rx="22" fill="#3a3a3a"/>
+        <rect x="40" y="172" width="260" height="12" rx="6" fill="#5a5a5a"/>
+        <circle cx="26" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+        <circle cx="314" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+        <rect x="10" y="232" width="320" height="6" rx="3" fill="#9a9a9a"/>
+      </svg>
+      <div id="stripes"></div>
+      <svg id="needle" viewBox="-100 0 140 500" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 336 H-51 V462" fill="none" stroke="#5e5e5e" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M-59 462 H-43 L-51 474 Z" fill="#2e2e2e"/>
+      </svg>
+      <div id="paperClip"><div id="lines"></div></div>
+      <div id="lever">
+        <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+          <rect x="70" y="96" width="40" height="30" rx="4" fill="#5e5e5e"/>
+          <circle cx="90" cy="110" r="6" fill="#3a3a3a"/>
+          <path d="M90 110 C 70 80, 40 60, 22 30" fill="none" stroke="#3a3a3a" stroke-width="10" stroke-linecap="round"/>
+          <rect x="6" y="10" width="34" height="22" rx="11" fill="#2a2a2a" stroke="#111" stroke-width="1.5"/>
+          <line x1="14" y1="21" x2="32" y2="21" stroke="#6a6a6a" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div id="gripPulse"></div>
+        <div id="grip" aria-label="Return lever"></div>
+      </div>
+    </div>
+    <div id="marker"></div>
+    <div id="touch"></div>
+    <button id="reset" aria-label="Reset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 1000, H = 580;
+  const TOP = 30;                  // carriage top on the stage
+  const CW = 10.8;                 // one character step (same as Study 2)
+  const STEPS = 23;
+  const TRAVEL = CW * STEPS;
+  const FULL_LEFT = 110;           // carriage position at the end of a line
+  const LINE_X = 180;              // line start inside the carriage
+  const LINE_TOP = 250;            // first line inside the paper clip
+  const LINE_H = 26;
+  const STICK = 8;                 // pull this far before the hook lets go
+  const GRIP_DX = -51;             // grip center relative to the carriage
+  const TEXT = 'Dear you, I wrote this ';
+
+  const frame = document.getElementById('frame');
+  const stage = document.getElementById('stage');
+  const carriage = document.getElementById('carriage');
+  const linesEl = document.getElementById('lines');
+  const stripes = document.getElementById('stripes');
+  const lever = document.getElementById('lever');
+  const grip = document.getElementById('grip');
+  const gripPulse = document.getElementById('gripPulse');
+  const track = document.getElementById('track');
+  const marker = document.getElementById('marker');
+  const touch = document.getElementById('touch');
+
+  let scale = 1;
+  function fit() {
+    scale = Math.min(1, frame.clientWidth / W);
+    stage.style.transform = `scale(${scale})`;
+    frame.style.height = (H * scale) + 'px';
+  }
+  window.addEventListener('resize', fit); fit();
+
+  // ---------- sound ----------
+  let ac = null, noise = null;
+  function initAudio() {
+    if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      const len = ac.sampleRate * .5, b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      noise = b;
+    } catch (e) { ac = null; }
+  }
+  function click(freq = 1400, vol = .05, dur = .02) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'triangle'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .01);
+    } catch (e) {}
+  }
+  function thud(vol = .6, freq = 260, dur = .16) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = noise; f.type = 'lowpass'; f.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      s.connect(f).connect(g).connect(ac.destination); s.start(t); s.stop(t + dur + .02);
+    } catch (e) {}
+  }
+  function slide(dur = .3) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = noise; f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
+      g.gain.setValueAtTime(.08, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      s.connect(f).connect(g).connect(ac.destination); s.start(t); s.stop(t + dur + .02);
+    } catch (e) {}
+  }
+
+  // ---------- track with notches ----------
+  const GRIP_X0 = FULL_LEFT + GRIP_DX;
+  const TRACK_Y = TOP + 482;
+  const notches = [];
+  function buildTrack() {
+    track.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => { const n = document.createElementNS(ns, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); track.appendChild(n); return n; };
+    mk('line', { x1: GRIP_X0, x2: GRIP_X0 + TRAVEL, y1: TRACK_Y, y2: TRACK_Y, stroke: '#c9c9c8', 'stroke-width': 7, 'stroke-linecap': 'round' });
+    notches.length = 0;
+    for (let i = 1; i <= STEPS; i++) notches.push(mk('rect', { x: GRIP_X0 + i * CW - 1, y: TRACK_Y - 6, width: 2, height: 12, rx: 1, fill: '#b9b9b8' }));
+    mk('rect', { x: GRIP_X0 + TRAVEL + 5, y: TRACK_Y - 12, width: 5, height: 24, rx: 2, fill: '#7a7a7a' });
+  }
+
+  // ---------- state ----------
+  let pos, vel, target, notch, drag, coast, done, lineCount, paperY, paperV, tilt, tiltTarget, samples;
+  function init() {
+    buildTrack();
+    linesEl.innerHTML = '';
+    addLine(TEXT.slice(0, STEPS), 0);
+    lineCount = 1;
+    pos = 0; vel = 0; target = 0; notch = 0; drag = null; coast = null; done = false;
+    paperY = 0; paperV = 0; tilt = 0; tiltTarget = 0; samples = [];
+    marker.style.opacity = 0;
+    gripPulse.classList.add('on');
+    demo = null; demoNext = performance.now() + 1500;
+  }
+  function addLine(text, row) {
+    const d = document.createElement('div');
+    d.className = 'line'; d.textContent = text;
+    d.style.top = (LINE_TOP + row * LINE_H) + 'px';
+    linesEl.appendChild(d);
+  }
+  function toStage(e) {
+    const r = stage.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale };
+  }
+
+  // ---------- lever ----------
+  let userTouched = false;
+  grip.addEventListener('pointerdown', (e) => {
+    if (done || coast) return;
+    e.preventDefault();
+    initAudio();
+    userTouched = true; demo = null; touch.style.opacity = 0;
+    const p = toStage(e);
+    drag = { x0: p.x, hooked: false };
+    samples = [{ x: p.x, t: performance.now() }];
+    grip.classList.add('held');
+    gripPulse.classList.remove('on');
+    tiltTarget = 8;
+    click(700, .09, .05);                     // clicks into the hook
+  });
+  window.addEventListener('pointermove', (e) => {
+    lastActivity = performance.now();
+    if (!drag) return;
+    const p = toStage(e);
+    samples.push({ x: p.x, t: performance.now() });
+    if (samples.length > 8) samples.shift();
+    let raw = p.x - drag.x0;
+    if (!drag.hooked) {
+      tiltTarget = 8 + Math.max(0, raw) * 1.1;  // tension builds before it gives
+      if (raw < STICK) return;
+      drag.hooked = true; drag.x0 += STICK; raw -= STICK;
+      click(500, .07, .04);
+    }
+    raw = Math.max(0, Math.min(TRAVEL, raw));
+    tiltTarget = 14;
+    setNotch(Math.floor(raw / CW + 0.0001), true);
+  });
+  function setNotch(n, sound) {
+    n = Math.max(0, Math.min(STEPS, n));
+    if (n !== notch) { if (sound) click(1100 + n * 18, .05, .018); notch = n; }
+    target = notch * CW;
+  }
+  function pullSpeed() {
+    // stage pixels per millisecond over the last ~90ms
+    const now = performance.now();
+    const recent = samples.filter(s => now - s.t < 90);
+    if (recent.length < 2) return 0;
+    const a = recent[0], b = recent[recent.length - 1];
+    return (b.x - a.x) / Math.max(1, b.t - a.t);
+  }
+  function endDrag() {
+    if (!drag) return;
+    const hooked = drag.hooked;
+    drag = null;
+    grip.classList.remove('held');
+    tiltTarget = 0;
+    if (notch >= STEPS) { finish(); return; }
+    const v = pullSpeed();
+    if (hooked && v > .45) {
+      // a firm pull: the carriage keeps going on its own momentum
+      coast = { v: Math.min(30, v * 17) };
+      pos = Math.max(pos, notch * CW);
+      return;
+    }
+    springBack();
+  }
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  function springBack() {
+    if (notch > 0) slide(.25 + notch * .01);
+    notch = 0; target = 0;
+    setTimeout(() => { if (!done && !drag) gripPulse.classList.add('on'); }, 900);
+  }
+  function finish() {
+    done = true;
+    notch = STEPS; target = TRAVEL;
+    thud(.7, 240, .18);
+    vel = 7;                                  // hits the stop and bounces back a little
+    paperV += 3;
+    setTimeout(() => {
+      addLine('', lineCount); lineCount++;
+      marker.style.opacity = 1;
+      click(2400, .04, .02);
+    }, 300);
+  }
+
+  // ---------- idle demonstration ----------
+  let demo = null, demoNext = 0, lastActivity = performance.now();
+  function runDemo(now) {
+    if (userTouched || done) return;
+    if (!demo) {
+      if (now < demoNext || now - lastActivity < 800) return;
+      demo = { t0: now };
+      touch.style.opacity = 1;
+    }
+    const t = now - demo.t0;
+    const ease = k => 1 - Math.pow(1 - Math.max(0, Math.min(1, k)), 3);
+    let press = 1;
+    if (t < 400) { tiltTarget = 0; }
+    else if (t < 600) { press = 1 - .2 * ease((t - 400) / 200); tiltTarget = 8; }
+    else if (t < 1400) { press = .8; tiltTarget = 14; setNotch(Math.floor(4 * ease((t - 600) / 800)), false); }
+    else if (t < 1800) { press = .8; tiltTarget = 0; touch.style.opacity = 0; setNotch(0, false); }
+    else { demo = null; demoNext = now + 2600; return; }
+    const gx = FULL_LEFT + pos + GRIP_DX, gy = TOP + 187 + 27;
+    touch.style.transform = `translate(${gx - 11}px, ${gy - 11}px) scale(${press})`;
+  }
+
+  // ---------- frame loop ----------
+  let lastNotchSound = -1;
+  function loop() {
+    const now = performance.now();
+    runDemo(now);
+
+    if (coast) {
+      // gliding on momentum, still ticking through each notch
+      pos += coast.v; coast.v *= .955; vel = 0;
+      const n = Math.min(STEPS, Math.floor(pos / CW));
+      if (n !== notch) { notch = n; click(1100 + n * 18, .045, .016); }
+      target = pos;
+      if (pos >= TRAVEL) { pos = TRAVEL; coast = null; finish(); }
+      else if (coast.v < .7) { coast = null; springBack(); }
+    } else {
+      // between notches the carriage snaps with a short, firm spring
+      vel += (target - pos) * .35; vel *= .55; pos += vel;
+    }
+    carriage.style.transform = `translateX(${(FULL_LEFT + pos).toFixed(2)}px)`;
+
+    // paper rolls up with the carriage; exactly one line when it reaches the end
+    const paperTarget = done ? -LINE_H : -LINE_H * Math.max(0, Math.min(1, pos / TRAVEL));
+    paperV += (paperTarget - paperY) * .25; paperV *= .6; paperY += paperV;
+    linesEl.style.transform = `translateY(${paperY.toFixed(2)}px)`;
+    stripes.style.backgroundPosition = `0 ${(-paperY * 1.6).toFixed(1)}px`;   // the roller turns with the paper
+
+    tilt += (tiltTarget - tilt) * .25;
+    lever.style.transform = `rotate(${tilt.toFixed(2)}deg)`;
+
+    notches.forEach((n, i) => n.setAttribute('fill', (i < notch || done) ? '#3a3a3a' : '#b9b9b8'));
+
+    // marker at the start of the new line
+    marker.style.left = (FULL_LEFT + pos + LINE_X - 0.5) + 'px';
+    marker.style.top = (TOP + 18 + LINE_TOP + paperY + LINE_H + 21) + 'px';
+
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('reset').addEventListener('click', init);
+  init();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>

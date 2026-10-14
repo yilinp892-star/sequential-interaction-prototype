@@ -1,0 +1,351 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Strike the Keys</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap">
+<style>
+  /* Layout: fixed 900×670 desk stage scaled to fit; carriage above, type bar at center, keyboard mirror below. Grayscale only. */
+  :root {
+    --bg: #e4e4e3;
+    --ink: #1b1b1b;
+    --soft: #9a9a9a;
+    --key: #2e2e2e;
+    --key-edge: #151515;
+    --type: "Courier Prime", "Courier New", Courier, monospace;
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px; box-sizing: border-box;
+    display: flex; justify-content: center; align-items: center; overflow: hidden;
+  }
+  #frame { width: 100%; max-width: 900px; position: relative; outline: none; }
+  #stage {
+    position: absolute; left: 0; top: 0; width: 900px; height: 670px;
+    transform-origin: 0 0; user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #carriage { position: absolute; top: 30px; left: 270px; width: 612px; height: 468px; will-change: transform; }
+  #carriage svg { position: absolute; inset: 0; width: 612px; height: 468px; }
+  #letters { position: absolute; inset: 0; pointer-events: none; }
+  .ch {
+    position: absolute; font-family: var(--type); font-size: 18px; line-height: 1;
+    color: var(--ink); width: 10.8px; text-align: center; transform-origin: 50% 80%;
+  }
+  #marker {
+    position: absolute; left: 444px; top: 318px; width: 12px; height: 2px;
+    background: var(--ink); animation: blink 1s steps(1) infinite; pointer-events: none;
+  }
+  #marker.off { visibility: hidden; animation: none; }
+  @keyframes blink { 50% { opacity: 0 } }
+  .bar { position: absolute; left: 420px; top: 276px; width: 60px; height: 200px; transform-origin: 30px 184px; pointer-events: none; }
+  .bar svg { width: 60px; height: 200px; display: block; }
+  #keys { position: absolute; left: 0; top: 0; width: 900px; height: 670px; pointer-events: none; transition: opacity .4s ease; }
+  #keys.locked { opacity: .35; }
+  .key {
+    position: absolute; width: 38px; height: 42px; pointer-events: auto; cursor: pointer;
+  }
+  .key .cap {
+    position: absolute; left: 0; top: 0; width: 38px; height: 38px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, var(--key) 55%, #3a3a3a 56%, var(--key) 62%);
+    border: 2px solid var(--key-edge); box-sizing: border-box;
+    color: #bdbdbd; font-family: var(--type); font-weight: 700; font-size: 13px;
+    display: grid; place-items: center; will-change: transform;
+  }
+  .key .stem { position: absolute; left: 0; top: 5px; width: 38px; height: 38px; border-radius: 50%; background: #4a4a4a; }
+  .key.space { width: 230px; }
+  .key.space .cap, .key.space .stem { width: 230px; border-radius: 19px; }
+  #reset {
+    position: absolute; right: 12px; top: 12px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--soft); background: var(--bg); color: var(--ink);
+    cursor: pointer; display: grid; place-items: center; z-index: 50;
+  }
+  #reset:hover { background: #d8d8d7; }
+  #reset:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  #frame:focus, #frame:focus-visible { outline: none; }
+  .key.space .cap { background: var(--key); }
+  #reset svg { width: 18px; height: 18px; }
+</style>
+
+<div id="frame" tabindex="0">
+  <div id="stage">
+    <div id="carriage">
+      <svg viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+        <rect x="84" y="10" width="172" height="170" fill="#f2f2f2" stroke="#8a8a8a" stroke-width="1.5"/>
+        <line x1="100" y1="161" x2="240" y2="161" stroke="#d6d6d6" stroke-width="0.6" stroke-dasharray="3 4"/>
+        <rect x="20" y="176" width="300" height="20" rx="4" fill="#5e5e5e"/>
+        <rect x="40" y="168" width="260" height="44" rx="22" fill="#3a3a3a"/>
+        <rect x="40" y="172" width="260" height="12" rx="6" fill="#5a5a5a"/>
+        <circle cx="26" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+        <circle cx="314" cy="190" r="16" fill="#6e6e6e" stroke="#444" stroke-width="1.5"/>
+        <rect x="10" y="232" width="320" height="6" rx="3" fill="#9a9a9a"/>
+        <g fill="#7a7a7a">
+          <rect x="30" y="232" width="2" height="6"/><rect x="60" y="232" width="2" height="6"/><rect x="90" y="232" width="2" height="6"/><rect x="120" y="232" width="2" height="6"/><rect x="150" y="232" width="2" height="6"/><rect x="180" y="232" width="2" height="6"/><rect x="210" y="232" width="2" height="6"/><rect x="240" y="232" width="2" height="6"/><rect x="270" y="232" width="2" height="6"/><rect x="300" y="232" width="2" height="6"/>
+        </g>
+      </svg>
+      <div id="letters"></div>
+    </div>
+    <div id="marker"></div>
+    <div id="bars"></div>
+    <div id="keys"></div>
+    <button id="reset" aria-label="Reset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 900, H = 670;
+  const CW = 10.8;              // one character step
+  const LINE_X = 180;           // line start inside the carriage
+  const BASE_Y = 268;           // letter top inside the carriage
+  const MAX = 23, BELL_AT = 18;
+  const REST = -78;             // type bar angle at rest
+
+  const BAR_SVG = `<svg viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="184" r="9" fill="#5a5a5a" stroke="#333" stroke-width="1.5"/><circle cx="30" cy="184" r="3" fill="#cfcfcf"/><rect x="27" y="30" width="6" height="154" fill="#7a7a7a"/><rect x="18" y="10" width="24" height="24" rx="2" fill="#3c3c3c" stroke="#1e1e1e" stroke-width="1.5"/><rect x="23" y="15" width="14" height="14" fill="#6a6a6a"/></svg>`;
+
+  const frame = document.getElementById('frame');
+  const stage = document.getElementById('stage');
+  const carriage = document.getElementById('carriage');
+  const letters = document.getElementById('letters');
+  const marker = document.getElementById('marker');
+  const barsEl = document.getElementById('bars');
+  const keysEl = document.getElementById('keys');
+
+  let scale = 1;
+  function fit() {
+    scale = Math.min(1, frame.clientWidth / W);
+    stage.style.transform = `scale(${scale})`;
+    frame.style.height = (H * scale) + 'px';
+  }
+  window.addEventListener('resize', fit); fit();
+
+  // ---------- sound ----------
+  let ac = null, noise = null;
+  function initAudio() {
+    if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      const len = ac.sampleRate * .5, b = ac.createBuffer(1, len, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      noise = b;
+    } catch (e) { ac = null; }
+  }
+  function thunk(vol = .5, freq = 700, dur = .07) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      s.buffer = noise; f.type = 'lowpass'; f.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      s.connect(f).connect(g).connect(ac.destination); s.start(t); s.stop(t + dur + .02);
+    } catch (e) {}
+  }
+  function click(freq = 1600, vol = .05, dur = .02) {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'triangle'; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .01);
+    } catch (e) {}
+  }
+  function bell() {
+    if (!ac) return;
+    try {
+      const t = ac.currentTime;
+      [2093, 4186, 6280].forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime([.14, .05, .02][i], t); g.gain.exponentialRampToValueAtTime(.0001, t + 1.4);
+        o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 1.5);
+      });
+    } catch (e) {}
+  }
+
+  // ---------- keyboard mirror ----------
+  const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+  const keyEls = {};
+  ROWS.forEach((row, r) => {
+    const startX = 450 - (row.length * 46 - 8) / 2;
+    [...row].forEach((ch, i) => addKey(ch, startX + i * 46, 500 + r * 46));
+  });
+  addKey(' ', 335, 636, true);
+
+  function addKey(ch, x, y, space) {
+    const k = document.createElement('div');
+    k.className = 'key' + (space ? ' space' : '');
+    k.style.left = x + 'px'; k.style.top = (y - 8) + 'px';
+    k.innerHTML = `<div class="stem"></div><div class="cap">${space ? '' : ch}</div>`;
+    keysEl.appendChild(k);
+    const cap = k.querySelector('.cap');
+    keyEls[ch] = { el: k, cap, depth: 0, target: 0 };
+    k.addEventListener('pointerdown', e => { e.preventDefault(); frame.focus(); press(ch, 'ptr'); });
+    k.addEventListener('pointerup', () => release('ptr'));
+    k.addEventListener('pointerleave', () => release('ptr'));
+  }
+
+  // ---------- state ----------
+  let pos, locked, carX, carV, held, lastStrike, letterNodes, bars;
+  function init() {
+    letters.innerHTML = ''; barsEl.innerHTML = '';
+    pos = 0; shown = 0; locked = false; carX = 0; carV = 0; held = new Map(); lastStrike = 0; bars = [];
+    keysEl.classList.remove('locked');
+    marker.classList.remove('off');
+    addBar();
+  }
+  function addBar() {
+    const b = document.createElement('div');
+    b.className = 'bar'; b.innerHTML = BAR_SVG;
+    barsEl.appendChild(b);
+    const bar = { el: b, ang: REST, target: REST, vel: 0 };
+    bars.push(bar);
+    return bar;
+  }
+
+  // ---------- typing ----------
+  function press(ch, src) {
+    initAudio();
+    if (held.has(src)) return;
+    const now = performance.now();
+    const k = keyEls[ch === ' ' ? ' ' : ch.toUpperCase()];
+    if (locked || pos >= MAX) {
+      thunk(.25, 300, .09); carV -= 1.2;       // the carriage is locked: a dull knock, nothing prints
+      if (k) { k.target = 3; held.set(src, { ch, k, dead: true }); }
+      return;
+    }
+    if (ch === ' ') {
+      if (k) k.target = 6;
+      held.set(src, { ch, k, space: true, t0: now });
+      pos++; advance();
+      return;
+    }
+    const jam = now - lastStrike < 60;
+    lastStrike = now;
+    if (k) k.target = 4;
+
+    // the type bar swings up and lands with weight
+    let bar = bars[0];
+    if (jam) { bar = addBar(); bar.el.style.transform = `rotate(${REST + 14}deg)`; bar.ang = REST + 14; }
+    bar.target = jam ? -9 : 0;
+    const node = document.createElement('div');
+    node.className = 'ch';
+    node.textContent = ch.toUpperCase() === ch ? ch : ch;
+    const slot = jam ? Math.max(0, pos - 1) : pos;
+    if (!jam) pos++;
+    node.style.left = (LINE_X + slot * CW - 0.5) + 'px';
+    node.style.top = BASE_Y + 'px';
+    node.style.opacity = 0;
+    if (jam) {
+      node.style.transform = `translate(${(Math.random() - .5) * 6}px, ${(Math.random() - .5) * 5}px) rotate(${(Math.random() - .5) * 16}deg)`;
+    }
+    letters.appendChild(node);
+    marker.classList.add('off');
+    const h = { ch, k, node, bar, t0: now, landed: false, jam };
+    held.set(src, h);
+    setTimeout(() => {               // impact after the swing
+      h.landed = true;
+      node.style.opacity = .5;
+      thunk(jam ? .6 : .45, jam ? 1100 : 750, .07);
+      if (jam) { click(420, .08, .06); }
+      else advance();                // the carriage steps on impact
+      carV -= .6;                    // the hit jolts the carriage
+    }, 95);
+  }
+
+  function release(src) {
+    const h = held.get(src);
+    if (!h) return;
+    held.delete(src);
+    if (h.k) h.k.target = 0;
+    if (h.dead) return;
+    const holdMs = performance.now() - h.t0;
+    if (h.space) return;
+    // the longer the press, the darker the letter
+    const finish = () => {
+      const strength = Math.min(1, Math.max(0, (performance.now() - h.t0 - 95) / 380));
+      h.node.style.opacity = (.5 + .5 * strength).toFixed(2);
+      if (strength > .75) h.node.style.textShadow = '0.4px 0 0 currentColor';
+      h.bar.target = REST;
+      if (h.jam) {
+        setTimeout(() => { const i = bars.indexOf(h.bar); if (i > 0) { h.bar.el.remove(); bars.splice(i, 1); } }, 420);
+      }
+      if (!held.size) marker.classList.remove('off');
+    };
+    if (h.landed) finish(); else setTimeout(finish, Math.max(0, 100 - holdMs));
+  }
+
+  let shown = 0;   // how far the carriage has actually moved
+  function advance() {
+    shown = Math.min(shown + 1, MAX);
+    click(1300 + Math.random() * 150, .04, .02);
+    if (shown === BELL_AT) bell();
+    if (shown >= MAX && !locked) { locked = true; keysEl.classList.add('locked'); thunk(.3, 400, .12); }
+  }
+
+  const KEYMAP = k => {
+    if (k === ' ') return ' ';
+    if (k.length === 1 && /[a-z0-9.,;:'"!?\-]/i.test(k)) return k;
+    return null;
+  };
+  window.addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const ch = KEYMAP(e.key);
+    if (!ch) return;
+    e.preventDefault();
+    if (e.repeat) return;
+    const vis = ch === ' ' ? ' ' : ch.toUpperCase();
+    press(ch, 'k:' + e.code);
+    const h = held.get('k:' + e.code);
+    if (h && !h.k && keyEls[vis]) { h.k = keyEls[vis]; h.k.target = h.dead ? 3 : 4; }
+  });
+  window.addEventListener('keyup', e => release('k:' + e.code));
+  window.addEventListener('blur', () => [...held.keys()].forEach(release));
+
+  // ---------- frame loop ----------
+  function loop() {
+    const now = performance.now();
+    // carriage: target is one step left per letter, a heavy spring with a small overshoot
+    const target = -shown * CW;
+    carV += (target - carX) * .16; carV *= .62; carX += carV;
+    carriage.style.transform = `translateX(${carX.toFixed(2)}px)`;
+
+    // keys sink slowly and deeper the longer they are held
+    for (const ch in keyEls) {
+      const k = keyEls[ch];
+      let tgt = k.target;
+      for (const h of held.values()) if (h.k === k && !h.dead) tgt = Math.min(7, 4 + (now - h.t0) / 160);
+      const speed = tgt > k.depth ? .12 : .08;
+      k.depth += (tgt - k.depth) * speed;
+      k.cap.style.transform = `translateY(${k.depth.toFixed(2)}px)`;
+    }
+    // letters darken while still held
+    for (const h of held.values()) {
+      if (h.node && h.landed) {
+        const s = Math.min(1, Math.max(0, (now - h.t0 - 95) / 380));
+        h.node.style.opacity = (.5 + .5 * s).toFixed(2);
+      }
+    }
+    // type bars swing with an accelerating ease
+    for (const b of bars) {
+      const up = b.target > b.ang;
+      b.vel += (b.target - b.ang) * (up ? .09 : .05);
+      b.vel *= up ? .78 : .7;
+      b.ang += b.vel;
+      if (up && b.ang > b.target) { b.ang = b.target; b.vel = 0; }
+      b.el.style.transform = `rotate(${b.ang.toFixed(2)}deg)`;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('reset').addEventListener('click', () => { init(); frame.focus(); });
+  frame.addEventListener('pointerdown', () => { initAudio(); frame.focus(); });
+  init();
+  try { frame.focus({ preventScroll: true }); } catch (e) {}
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
