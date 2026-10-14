@@ -1,5 +1,6 @@
 // Scene 2 · Type the page (adapted from studies/02-strike-the-keys and studies/03-return-the-carriage).
-// Type a line, pull the lever to return, eight times until the page is full.
+// Type freely; return the carriage at any time with the lever or a two-finger swipe right. Up to eight lines;
+// "Finish the page" ends early. A small page in the corner shows how much is written.
 // Backspace rewinds time: tap removes one letter, hold keeps rewinding slowly.
 LP.scenes.type = (() => {
   const api = { ox: 0, oy: 60, active: false };
@@ -21,22 +22,41 @@ LP.scenes.type = (() => {
   const GRIP_DX = -51;            // grip centre relative to the carriage
   const TRACK_Y = TOP + 482;
 
-  const PROMPTS = [
-    'Take a slow breath. How are you, right now?',
-    'What did you notice today?',
-    'Something small that made you smile.',
-    'What is sitting quietly in your mind?',
-    'What would you like to let go of?',
-    'What are you grateful for?',
-    'What do you need a little more of?',
-    'One kind word for yourself.'
-  ];
+  // one quiet invitation for the whole page; it fades once typing begins
+  const INVITE = 'Write something for yourself.';
 
   const BAR_SVG = `<svg viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="184" r="9" fill="#5a5a5a" stroke="#333" stroke-width="1.5"/><circle cx="30" cy="184" r="3" fill="#cfcfcf"/><rect x="27" y="30" width="6" height="154" fill="#7a7a7a"/><rect x="18" y="10" width="24" height="24" rx="2" fill="#3c3c3c" stroke="#1e1e1e" stroke-width="1.5"/><rect x="23" y="15" width="14" height="14" fill="#6a6a6a"/></svg>`;
 
   const carriage = q('.carriage'), linesEl = q('.lines'), face = q('.paperFace'), stripes = q('.stripes');
   const lever = q('.lever'), grip = q('.grip'), gripPulse = q('.gripPulse'), track = q('.track');
   const marker = q('.marker'), barsEl = q('.bars'), keysEl = q('.keys'), keyTip = q('.keyTip'), touch = q('.touch');
+  const leverTip = q('.leverTip'), gauge = q('.pageGauge'), mini = q('.mini'), finishBtn = q('.finishBtn');
+
+  // the little page in the corner: one mark per line, filling as you write
+  const gaugeLines = [];
+  for (let i = 0; i < ROWS_N; i++) {
+    const m = document.createElement('i');
+    m.style.top = (8 + i * 6) + 'px';
+    mini.appendChild(m); gaugeLines.push(m);
+  }
+  function drawGauge() {
+    for (let i = 0; i < ROWS_N; i++) {
+      const m = gaugeLines[i];
+      let len = 0, cls = '';
+      if (i < row || (mode === 'out' && finishedRows[i] !== undefined)) { len = (finishedRows[i] || '').length; cls = 'done'; }
+      else if (i === row && mode !== 'out') { len = shown; cls = 'now'; }
+      m.style.width = (Math.max(cls ? 2 : 34, 34 * len / MAX)).toFixed(1) + 'px';
+      m.className = cls;
+    }
+    finishBtn.classList.toggle('on', api.active && mode === 'type' && (row > 0 || pos > 0));
+  }
+  finishBtn.addEventListener('click', () => {
+    if (!api.active || mode !== 'type' || rw) return;
+    for (const h of held.values()) if (!h.dead) return;
+    if (pos > 0) finishedRows[row] = Array.from(rowText, c => c || ' ').join('').replace(/\s+$/, '');
+    stopDemo();
+    pageOut(false);
+  });
 
   // ---------- keyboard mirror ----------
   const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
@@ -78,7 +98,7 @@ LP.scenes.type = (() => {
   let paperY, paperV, tilt, tiltTarget;
   let leverReady, drag, coast, samples, steps, endX, pullPos, pullVel, pullTarget, notch, finishing;
   let rw = null;                  // rewind in progress
-  let everTyped, everRewound, everPulled, saidLever;
+  let everTyped, everRewound, everPulled;
   let lastActivity, demo, demoNext, demoShift, demoShiftT, backTipShown;
 
   function init(data) {
@@ -92,17 +112,19 @@ LP.scenes.type = (() => {
     carX = C0; carV = 0; held = new Map(); lastStrike = 0;
     paperY = 0; paperV = 0; tilt = 0; tiltTarget = 0;
     drag = null; coast = null; finishing = false; rw = null;
-    everTyped = false; everRewound = false; everPulled = false; saidLever = false;
+    everTyped = false; everRewound = false; everPulled = false;
     lastActivity = performance.now(); demo = null; demoNext = performance.now() + 4500;
     demoShift = 0; demoShiftT = 0; backTipShown = 0;
     marker.classList.remove('off');
-    keyTip.classList.remove('on');
+    keyTip.classList.remove('on'); leverTip.classList.remove('on');
+    swipe = null; needGap = false; touches.clear(); touchAvg = null;
+    gauge.classList.add('on');
     touch.style.opacity = 0;
     for (const ch in keyEls) { keyEls[ch].depth = 0; keyEls[ch].target = 0; }
   }
   function newRowState() {
     pos = 0; shown = 0; locked = false; recs = []; rowText = [];
-    setLeverReady(false);
+    setLeverReady(true);
   }
   function addBar() {
     const b = document.createElement('div');
@@ -198,7 +220,7 @@ LP.scenes.type = (() => {
     shown = Math.min(shown + 1, MAX);
     A.tick(1300 + Math.random() * 150, .035, .02);
     if (shown === BELL_AT) A.bell();
-    if (shown >= BELL_AT) setLeverReady(true);
+    setLeverReady(true);
     if (shown >= MAX && !locked) { locked = true; A.thunk(.25, 400, .12); }
   }
 
@@ -224,7 +246,7 @@ LP.scenes.type = (() => {
       shown = Math.max(0, shown - 1);    // the carriage slides back one step
     }
     if (locked && shown < MAX) locked = false;
-    setLeverReady(shown >= BELL_AT);
+    setLeverReady(true);
     A.rewind();
     return true;
   }
@@ -273,17 +295,14 @@ LP.scenes.type = (() => {
   window.addEventListener('blur', () => { if (held) [...held.keys()].forEach(release); stopRewind(); });
 
   // ---------- the return lever ----------
+  // the lever can be pulled at any time while typing (even on an empty line);
+  // it only pulses as a reminder once the bell has rung near the end of the line
   function setLeverReady(on) {
-    if (on === leverReady) { if (on) buildTrack(); return; }
     leverReady = on;
     grip.classList.toggle('ready', on);
-    gripPulse.classList.toggle('on', on);
     track.classList.toggle('on', on);
+    gripPulse.classList.toggle('on', on && shown >= BELL_AT && !drag);
     buildTrack();
-    if (on && mode === 'type' && (!saidLever || row === ROWS_N - 1)) {
-      saidLever = true;
-      LP.say(row === ROWS_N - 1 ? 'When you feel finished, pull the lever.' : 'When you are ready, pull the lever for a new line.');
-    }
   }
   function pingLever() {
     if (leverReady) { gripPulse.classList.remove('on'); void gripPulse.offsetWidth; gripPulse.classList.add('on'); A.tick(900, .03, .03); }
@@ -356,7 +375,8 @@ LP.scenes.type = (() => {
     drag = null;
     grip.classList.remove('held');
     tiltTarget = 0;
-    if (notch >= steps) { finish(); return; }
+    // a full pull returns; on an empty line, any firm pull past the hook is a line feed
+    if ((steps > 0 && notch >= steps) || (steps === 0 && hooked)) { finish(); return; }
     const v = pullSpeed();
     if (hooked && v > .45) {
       coast = { v: Math.min(30, v * 17) };       // a firm pull keeps going on its own
@@ -387,29 +407,91 @@ LP.scenes.type = (() => {
         newRowState();
         marker.classList.remove('off');
         A.tick(2400, .035, .02);
-        LP.say(PROMPTS[row]);
       } else {
-        pageOut();
+        pageOut(true);
       }
     }, 650);
   }
 
-  // the page is full: the roller turns until the sheet comes free
-  function pageOut() {
-    mode = 'out'; finishing = false;
+  // the page is done (full, or finished early): the roller turns until the sheet comes free
+  function pageOut(full) {
+    mode = 'out'; finishing = false; swipe = null;
     setLeverReady(false);
     marker.classList.add('off');
-    LP.say('Your page is full. Take a slow breath.');
+    leverTip.classList.remove('on'); keyTip.classList.remove('on');
+    LP.say(full ? 'Your page is full. Take a slow breath.' : 'Your page is ready. Take a slow breath.');
     let i = 0;
-    const base = -ROWS_N * LINE_H;
+    const base = Math.min(paperY, -row * LINE_H);
+    const lines = Array.from({ length: ROWS_N }, (_, k) => finishedRows[k] || '');
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();   // no empty lines after the last words
     (function step() {
       i++;
-      outTarget = base - i * 30;
+      outTarget = base - i * 46;
       A.tick(1100 + Math.random() * 120, .04, .02);
       if (i < 13) setTimeout(step, 170);
-      else setTimeout(() => LP.seq.next('keep', { paper, lines: finishedRows.slice() }), 1500);
+      else setTimeout(() => LP.seq.next('keep', { paper, lines }), 1500);
     })();
   }
+
+  // ---------- two-finger swipe to the right = pulling the lever ----------
+  // trackpad: horizontal wheel events; touch screens: two fingers moving right.
+  let swipe = null, lastWheel = 0, needGap = false;
+  function swipeInput(amount) {
+    const now = performance.now();
+    if (!swipe) {
+      if (!api.active || mode !== 'type' || !leverReady || rw || drag) return;
+      for (const h of held.values()) if (!h.dead) return;
+      stopDemo();
+      mode = 'pull';
+      steps = shown; endX = C0 - shown * CW;
+      pullPos = carX - endX; pullVel = 0; pullTarget = 0; notch = 0; finishing = false;
+      swipe = { acc: 0 };
+      gripPulse.classList.remove('on'); marker.classList.add('off'); leverTip.classList.remove('on');
+      tiltTarget = 14;
+      A.tick(700, .08, .05); A.tick(500, .06, .04);
+    }
+    lastActivity = now;
+    swipe.last = now;
+    swipe.acc += amount;
+    if (steps === 0) { if (swipe.acc > 24) { swipe = null; needGap = true; tiltTarget = 0; finish(); } return; }
+    setNotch(Math.floor(swipe.acc * .9 / CW + 0.0001), true);
+    if (notch >= steps) { swipe = null; needGap = true; tiltTarget = 0; finish(); }
+  }
+  function endSwipe() {
+    if (!swipe) return;
+    swipe = null; tiltTarget = 0;
+    if (notch >= steps * .5) coast = { v: 10 };   // most of the way: it glides home
+    else springBack();
+  }
+  window.addEventListener('wheel', (e) => {
+    if (!api.active || mode === 'out') return;
+    const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+    const dx = e.deltaX * k, dy = e.deltaY * k;
+    if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
+    e.preventDefault();                         // keep the browser from going "back"
+    const now = performance.now();
+    if (needGap) {                              // let the last swipe's momentum die out first
+      if (now - lastWheel > 260) needGap = false;
+      else { lastWheel = now; return; }
+    }
+    lastWheel = now;
+    if (mode === 'pull' && !swipe) return;      // already being pulled by hand
+    swipeInput(Math.abs(dx));
+  }, { passive: false });
+  const touches = new Map();
+  let touchAvg = null;
+  window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') { touches.set(e.pointerId, e.clientX); touchAvg = null; } });
+  window.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
+    touches.set(e.pointerId, e.clientX);
+    if (touches.size !== 2) { touchAvg = null; return; }
+    const avg = [...touches.values()].reduce((a, b) => a + b, 0) / 2;
+    if (touchAvg !== null && avg > touchAvg) swipeInput((avg - touchAvg) / LP.scale * 1.3);
+    touchAvg = avg;
+  });
+  const touchEnd = e => { if (e.pointerType === 'touch') { touches.delete(e.pointerId); touchAvg = null; if (touches.size < 2) endSwipe(); } };
+  window.addEventListener('pointerup', touchEnd);
+  window.addEventListener('pointercancel', touchEnd);
   let outTarget = 0;
 
   // ---------- hints ----------
@@ -418,16 +500,17 @@ LP.scenes.type = (() => {
     demo = null; touch.style.opacity = 0;
   }
   function runDemo(now) {
-    if (!api.active || mode !== 'type' || drag || rw || held.size) { if (demo) stopDemo(); return; }
+    if (!api.active || mode !== 'type' || drag || rw || held.size || swipe) { if (demo) stopDemo(); return; }
     if (!demo) {
       if (now < demoNext || now - lastActivity < 2500) return;
       let kind = null;
-      if (leverReady && !everPulled) kind = 'lever';
-      else if (!everTyped) kind = 'key';
+      if (!everTyped) kind = 'key';
+      else if (leverReady && !everPulled && (pos >= 10 || locked)) kind = 'lever';
       else if (!everRewound && pos >= 4 && backTipShown < 2 && now - lastActivity > 5000) kind = 'back';
       if (!kind) return;
       demo = { kind, t0: now, n: 0 };
       if (kind === 'back') { backTipShown++; keyTip.classList.add('on'); }
+      if (kind === 'lever') leverTip.classList.add('on');
       touch.style.opacity = 1;
     }
     const t = now - demo.t0;
@@ -459,7 +542,7 @@ LP.scenes.type = (() => {
       else if (t < 600) { press = 1 - .2 * ease((t - 400) / 200); tiltTarget = 8; }
       else if (t < 1400) { press = .8; tiltTarget = 14; demoShiftT = Math.floor(4 * ease((t - 600) / 800)) * CW; }
       else if (t < 1800) { press = .8; tiltTarget = 0; touch.style.opacity = 0; demoShiftT = 0; }
-      else { stopDemo(); demoNext = now + 3400; return; }
+      else { stopDemo(); demoNext = now + 3400; setTimeout(() => leverTip.classList.remove('on'), 2500); return; }
       const gx = carX + demoShift + GRIP_DX, gy = TOP + 187 + 27;
       touch.style.transform = `translate(${gx - 11}px, ${gy - 11}px) scale(${press})`;
     }
@@ -482,10 +565,11 @@ LP.scenes.type = (() => {
         pullVel += (pullTarget - pullPos) * .35; pullVel *= .55; pullPos += pullVel;
       }
       carX = endX + pullPos;
-      if (!drag && !coast && !finishing && Math.abs(pullPos) < .3 && Math.abs(pullVel) < .1) {
+      if (swipe && now - swipe.last > 170) endSwipe();   // the fingers have lifted
+      if (!drag && !swipe && !coast && !finishing && Math.abs(pullPos) < .3 && Math.abs(pullVel) < .1) {
         mode = 'type'; carV = 0; carX = endX;   // sprang back: carry on typing this line
         marker.classList.remove('off');
-        setTimeout(() => { if (mode === 'type' && leverReady && !drag) gripPulse.classList.add('on'); }, 900);
+        setTimeout(() => { if (mode === 'type' && leverReady && !drag && shown >= BELL_AT) gripPulse.classList.add('on'); }, 900);
       }
     } else {
       const target = C0 - shown * CW;   // a heavy spring with a small overshoot
@@ -497,7 +581,7 @@ LP.scenes.type = (() => {
     // paper: rolls with the lever, exactly one line per return
     const base = -row * LINE_H;
     let paperTarget = base;
-    if (mode === 'pull') paperTarget = finishing ? base - LINE_H : base - LINE_H * Math.max(0, Math.min(1, pullPos / (steps * CW)));
+    if (mode === 'pull') paperTarget = finishing ? base - LINE_H : base - LINE_H * (steps > 0 ? Math.max(0, Math.min(1, pullPos / (steps * CW))) : 0);
     else if (mode === 'out') paperTarget = outTarget;
     else if (demoShift > .5) paperTarget = base - LINE_H * .15 * (demoShift / (4 * CW));
     paperV += (paperTarget - paperY) * .25; paperV *= .6; paperY += paperV;
@@ -509,6 +593,7 @@ LP.scenes.type = (() => {
     notches.forEach((n, i) => n.setAttribute('fill', (mode === 'pull' && (i < notch || finishing)) ? '#3a3a3a' : '#b9b9b8'));
 
     keysEl.classList.toggle('locked', locked || mode !== 'type');
+    drawGauge();
 
     // keys sink slowly and deeper the longer they are held
     for (const ch in keyEls) {
@@ -539,7 +624,7 @@ LP.scenes.type = (() => {
 
   api.enter = (data) => {
     init(data || {});
-    LP.say(PROMPTS[0], 500);
+    LP.say(INVITE, 500);
   };
   api.leave = () => { stopRewind(); stopDemo(); };
   api.update = update;
