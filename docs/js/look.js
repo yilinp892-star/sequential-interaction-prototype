@@ -88,16 +88,16 @@ LP.look = (() => {
   const ORIGINAL = Object.fromEntries(ALL.map(it => [it.key, it.def]));
 
   const allPapers = (o) => Object.fromEntries(PAPERS.flatMap(([p]) => Object.entries(o).map(([k, v]) => [p + k, typeof v === 'object' ? v[p] : v])));
-  // the saved defaults: a fresh look (pale mint, clean white papers with mint rules and a coral margin, sage body, cream keys, soft teal ink)
+  // the saved defaults: an old-letter look (brown tones, yellowed and stained paper, faded uneven ink) — same values as the Old letter preset
   const SAVED = {
-    bg: '#e6f0ea', guideColor: '#5f7d70', hintColor: '#7f9a8e', glowColor: '#f4fff9', glowK: 120,
-    ...allPapers({ Base: { plain: '#fdfefc', lined: '#fbfdf9', grid: '#fafcfb', translucent: '#f2fbff' }, Border: '#b8cfc3', Radius: 6,
-      Shadow: { plain: 10, lined: 10, grid: 10, translucent: 4 }, ShadowOff: 3 }),
-    transAlpha: 60, lineColor: '#bfe0d6', marginColor: '#f2b8b0', gridColor: '#cfe3ea',
-    bodyColor: '#a9c4b8', platenColor: '#6f8f84', stripeK: 10, leverColor: '#7d9a90', barColor: '#8aa79c', trackColor: '#b7cdc3',
-    keyColor: '#f7f4ec', keyEdge: '#b9cdc2', keyLabel: '#5f7d70',
-    typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
-    deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10
+    bg: '#b59b7c', guideColor: '#4a3626', hintColor: '#5e4733', glowColor: '#ffe7c2', glowK: 120,
+    ...allPapers({ Base: { plain: '#ecdcb8', lined: '#e8d6ae', grid: '#e5d2a8', translucent: '#f1e2c0' }, Border: '#8a6f4c', Radius: 3, Shadow: { plain: 25, lined: 25, grid: 25, translucent: 12 },
+      Texture: { plain: 'stain', lined: 'stain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 60, lined: 55, grid: 45, translucent: 35 } }),
+    transAlpha: 68, lineColor: '#b69a72', marginColor: '#a0705a', gridColor: '#bfa47c',
+    bodyColor: '#5b4a3b', platenColor: '#2f251d', stripeK: 10, leverColor: '#3a2e24', barColor: '#463829', trackColor: '#8f7a62',
+    keyColor: '#3a2e24', keyEdge: '#1e1711', keyLabel: '#e2cfaa',
+    typeColor: '#4b3a2c', inkUneven: 55, typeSkew: 1.5, sigColor: '#5a4030',
+    deskColor: '#a3865f', drawerColor: '#7a5c3e', creaseK: 28
   };
   const DEFAULTS = { ...ORIGINAL, ...SAVED };
   const META = Object.fromEntries(ALL.map(it => [it.key, it]));
@@ -133,7 +133,7 @@ LP.look = (() => {
   ];
 
   // ---------- storage ----------
-  const STORE = 'lp-look-v3', UI_STORE = 'lp-look-ui-v1';   // v3: Fresh became the saved default
+  const STORE = 'lp-look-v4', UI_STORE = 'lp-look-ui-v1';   // v4: Old letter became the saved default
   const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
