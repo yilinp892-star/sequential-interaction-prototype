@@ -24,7 +24,7 @@ LP.scenes.type = (() => {
   const TRACK_Y = TOP + 482;
 
   // one quiet invitation for the whole page; it fades once typing begins
-  const INVITE = 'Write something for yourself.';
+  const INVITE = 'Write to yourself.';
 
   const BAR_SVG = `<svg viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="184" r="9" style="fill:var(--bar-pivot);stroke:var(--bar-pivot-edge)" stroke-width="1.5"/><circle cx="30" cy="184" r="3" style="fill:var(--bar-dot)"/><rect x="27" y="30" width="6" height="154" style="fill:var(--bar-stem)"/><rect x="18" y="10" width="24" height="24" rx="2" style="fill:var(--bar);stroke:var(--bar-edge)" stroke-width="1.5"/><rect x="23" y="15" width="14" height="14" style="fill:var(--bar-face)"/></svg>`;
 

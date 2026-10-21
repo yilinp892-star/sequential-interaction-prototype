@@ -49,7 +49,7 @@ LP.scenes.keep = (() => {
 
   // ---------- state ----------
   let phase, sig, pen, penTarget, drawing, foldAt, foldAngle, lx, ly, ltx, lty, drag, liftY;
-  let userActed, demo, demoNext, lastActivity, insertT, insertFrom, restT, lsc, open, openT, inDrawer, saidShort;
+  let userActed, demo, demoNext, lastActivity, insertT, insertFrom, restT, lsc, open, openT, inDrawer;
 
   function drawLetter() {
     topFront.innerHTML = letterSVG('kt', true);
@@ -77,7 +77,7 @@ LP.scenes.keep = (() => {
     inkCv.style.transition = ''; inkCv.style.opacity = 1; demoCv.style.opacity = 1;
     phase = 'sign'; sig = 0; pen = null; penTarget = null; drawing = false; foldAt = 0;
     foldAngle = 0; lx = HOME.x; ly = HOME.y; ltx = lx; lty = ly; drag = null; liftY = 0; lsc = 1;
-    open = 0; openT = 0; inDrawer = false; saidShort = false;
+    open = 0; openT = 0; inDrawer = false;
     letter.classList.remove('dragging'); letter.style.zIndex = ''; letter.style.filter = '';
     signZone.style.display = ''; grabZone.style.display = 'none';
     userActed = { sign: false, drag: false };
@@ -155,7 +155,6 @@ LP.scenes.keep = (() => {
     else {
       // too short: it fades away
       inkCv.style.transition = 'opacity .9s ease'; inkCv.style.opacity = 0;
-      if (!saidShort) { saidShort = true; LP.say('A little more. Take your time.'); }
       setTimeout(() => { if (phase === 'sign' && !drawing) { ink.clearRect(0, 0, 260, 338); sig = 0; inkCv.style.transition = ''; inkCv.style.opacity = 1; } }, 950);
     }
   }
@@ -176,7 +175,7 @@ LP.scenes.keep = (() => {
         A.burst('lowpass', 600, .16, .08);
         lastActivity = performance.now();
         // the drawer slides open, waiting
-        setTimeout(() => { openT = .75; A.drawer(false); LP.say('Put it away, somewhere safe.'); }, 500);
+        setTimeout(() => { openT = .75; A.drawer(false); LP.say('Put it away.'); }, 500);
       }
     })(t0);
   }
@@ -289,7 +288,7 @@ LP.scenes.keep = (() => {
       if (open < .012) {
         open = 0; phase = 'done';
         A.thunk(.38, 170, .22);                         // the drawer meets the desk
-        setTimeout(() => LP.say('Your page is kept.'), 900);
+        setTimeout(() => LP.say('Kept.'), 900);
         setTimeout(() => LP.showNewPage(), 4200);
       }
     }
@@ -322,7 +321,7 @@ LP.scenes.keep = (() => {
     rows = (data && data.lines) || [];
     paper = (data && data.paper) || 'plain';
     init();
-    LP.say('Sign it, slowly. From you, to you.', 500);
+    LP.say('Sign here.', 500);
   };
   api.leave = () => { stopDemo(); A.quiet(); };
   api.update = update;

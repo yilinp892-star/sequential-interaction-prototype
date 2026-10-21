@@ -45,7 +45,7 @@ LP.scenes.feed = (() => {
   let active = null;      // sheet under the pointer
   let fed = false;
   let last = null;
-  let saidReady = false, saidCarry = false;
+  let saidReady = false;
 
   function makeSheet(type, i) {
     const el = document.createElement('div');
@@ -100,7 +100,7 @@ LP.scenes.feed = (() => {
     stripes.style.backgroundPosition = '0 0';
     userTouched = false; demo = null; touch.style.opacity = 0; demoNext = performance.now() + 3200; demoIdx = 0;
     pickup = null; hasDragged = false; pickupNext = 0; lastActivity = performance.now();
-    saidReady = false; saidCarry = false;
+    saidReady = false;
   }
 
   function onDown(e, s) {
@@ -128,7 +128,6 @@ LP.scenes.feed = (() => {
     s.tx = s.x; s.ty = s.y; s.vx = s.vy = 0;
     s.el.style.transformOrigin = '80px 104px';
     tick(1200, .04, .04);
-    if (!saidCarry) { saidCarry = true; LP.say('Bring it to the roller, and let it go.'); }
   }
 
   window.addEventListener('pointermove', (e) => {
@@ -193,7 +192,7 @@ LP.scenes.feed = (() => {
           ghost.style.opacity = .55;
           slotGlow.classList.add('pulse');
           roller.style.opacity = .75;
-          if (!saidReady) { saidReady = true; LP.say('This one is ready. Lift it by its curled corner.'); }
+          if (!saidReady) { saidReady = true; LP.quiet(); }   // from here the curled corner and the slot guide the hand
         }
       }
       // pulling a rubbed sheet off its edge picks it up
@@ -459,7 +458,7 @@ LP.scenes.feed = (() => {
 
   api.enter = () => {
     init();
-    LP.say('Choose a page for today. Touch each one, and feel it.', 600);
+    LP.say('Touch a page to choose it.', 600);
   };
   api.leave = () => { A.quiet(); };
   api.update = update;
