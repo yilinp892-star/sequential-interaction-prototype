@@ -79,7 +79,13 @@ LP.look = (() => {
   GROUPS.forEach(g => (g.sub || [g]).forEach(sg => sg.items.forEach(it => {
     ALL.push(it); groupOf[it.key] = g.sub ? `${g.title} · ${sg.title}` : g.title;
   })));
-  const DEFAULTS = Object.fromEntries(ALL.map(it => [it.key, it.def]));
+  // settings that only presets change; they have no control in the panel
+  const HIDDEN = { calmFont: 'default' };
+  // the face for the guiding line, hints and buttons (typed text keeps the typewriter face)
+  const FONTS = {
+    gothic: { family: '"Grenze Gotisch", "UnifrakturMaguntia", "Old English Text MT", Georgia, serif', style: 'normal' }
+  };
+  const DEFAULTS = { ...Object.fromEntries(ALL.map(it => [it.key, it.def])), ...HIDDEN };
   const META = Object.fromEntries(ALL.map(it => [it.key, it]));
 
   // ---------- presets (partial overrides on the defaults) ----------
@@ -121,7 +127,7 @@ LP.look = (() => {
       typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
       deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10 } },
     { id: 'gothic', name: 'Gothic', values: {
-      bg: '#120d12', guideColor: '#c9b48a', guideSize: 22, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
+      calmFont: 'gothic', bg: '#120d12', guideColor: '#c9b48a', guideSize: 25, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
       ...allPapers({ Base: { plain: '#d9ccb0', lined: '#d3c4a6', grid: '#cfc0a2', translucent: '#e6dcc6' }, Border: '#3b2a2a', Radius: 0,
         Shadow: { plain: 55, lined: 55, grid: 55, translucent: 35 }, ShadowOff: 7,
         Texture: { plain: 'stain', lined: 'grain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 35, lined: 40, grid: 35, translucent: 25 } }),
@@ -256,6 +262,9 @@ LP.look = (() => {
   function applyVars() {
     const V = values, set = (k, val) => root.style.setProperty(k, val);
     set('--bg', V.bg);
+    const font = FONTS[V.calmFont];
+    if (font) { set('--calm', font.family); set('--calm-style', font.style); }
+    else { root.style.removeProperty('--calm'); root.style.removeProperty('--calm-style'); }
     set('--guide', V.guideColor); set('--guide-size', V.guideSize + 'px');
     set('--hint', V.hintColor);
     set('--glow', V.glowColor); set('--glow-k', V.glowK / 100);
@@ -413,6 +422,7 @@ LP.look = (() => {
       if (it.type === 'select') v = `${(it.options.find(o => o[0] === v) || [, v])[1]} (${v})`;
       lines.push(`${it.label} (${it.key}): ${v}`);
     }
+    if (values.calmFont !== DEFAULTS.calmFont) lines.push('', `Guide and hint font (calmFont, set by preset): ${values.calmFont}`);
     lines.push('', 'Set these values as the prototype\'s saved defaults. Keep the panel code for future adjustments. Commit and push the changes.');
     return lines.join('\n');
   }

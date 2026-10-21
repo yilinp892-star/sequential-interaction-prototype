@@ -43,7 +43,7 @@ body.at-desk { background: var(--desk); }
 /* the quiet guiding line */
 #guide {
   position: absolute; left: 80px; right: 80px; top: 22px; height: 40px; line-height: 40px;
-  text-align: center; font-family: var(--calm); font-style: italic; font-size: var(--guide-size); color: var(--guide);
+  text-align: center; font-family: var(--calm); font-style: var(--calm-style, italic); font-size: var(--guide-size); color: var(--guide);
   opacity: 0; transition: opacity 1.1s ease; pointer-events: none; z-index: 40;
 }
 #guide.on { opacity: 1; }
@@ -57,7 +57,7 @@ body.at-desk { background: var(--desk); }
 
 #newPage {
   position: absolute; left: 50%; top: 700px; transform: translateX(-50%);
-  font-family: var(--calm); font-style: italic; font-size: 19px; color: var(--guide);
+  font-family: var(--calm); font-style: var(--calm-style, italic); font-size: 19px; color: var(--guide);
   background: transparent; border: 1px solid var(--soft); border-radius: 24px;
   padding: 10px 28px; cursor: pointer; opacity: 0; transition: opacity 1.4s ease, background .3s ease; z-index: 60;
 }
@@ -200,7 +200,7 @@ body.at-desk { background: var(--desk); }
 #sceneType .key.back .cap { background: var(--key); font-size: calc(var(--ks) * .447); }
 #sceneType .keyTip {
   position: absolute; left: 700px; top: 528px; width: 130px; text-align: center;
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
+  font-family: var(--calm); font-style: var(--calm-style, italic); font-size: 14px; color: var(--hint);
   opacity: 0; transition: opacity .9s ease; pointer-events: none;
 }
 #sceneType .keyTip.on { opacity: 1; }
@@ -209,7 +209,7 @@ body.at-desk { background: var(--desk); }
 /* how much of the page is written, and a quiet way to finish early */
 #sceneType .leverTip {
   position: absolute; left: 20px; top: 538px; width: 250px; text-align: center;
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
+  font-family: var(--calm); font-style: var(--calm-style, italic); font-size: 14px; color: var(--hint);
   opacity: 0; transition: opacity .9s ease; pointer-events: none;
 }
 #sceneType .leverTip.on { opacity: 1; }
@@ -229,7 +229,7 @@ body.at-desk { background: var(--desk); }
 #sceneType .mini i.done { background: #4a4a4a; }
 #sceneType .mini i.now { background: #8a8a8a; }
 #sceneType .finishBtn {
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
+  font-family: var(--calm); font-style: var(--calm-style, italic); font-size: 14px; color: var(--hint);
   background: transparent; border: 1px solid color-mix(in srgb, var(--hint) 45%, transparent); border-radius: 16px; padding: 4px 12px;
   cursor: pointer; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .8s ease, background .3s ease;
 }
