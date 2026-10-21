@@ -119,7 +119,17 @@ LP.look = (() => {
       bodyColor: '#a9c4b8', platenColor: '#6f8f84', stripeK: 10, leverColor: '#7d9a90', barColor: '#8aa79c', trackColor: '#b7cdc3',
       keyColor: '#f7f4ec', keyEdge: '#b9cdc2', keyLabel: '#5f7d70',
       typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
-      deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10 } }
+      deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10 } },
+    { id: 'gothic', name: 'Gothic', values: {
+      bg: '#120d12', guideColor: '#c9b48a', guideSize: 22, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
+      ...allPapers({ Base: { plain: '#d9ccb0', lined: '#d3c4a6', grid: '#cfc0a2', translucent: '#e6dcc6' }, Border: '#3b2a2a', Radius: 0,
+        Shadow: { plain: 55, lined: 55, grid: 55, translucent: 35 }, ShadowOff: 7,
+        Texture: { plain: 'stain', lined: 'grain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 35, lined: 40, grid: 35, translucent: 25 } }),
+      transAlpha: 88, lineColor: '#8c2a2f', marginColor: '#5a0f16', gridColor: '#a08870',
+      bodyColor: '#2c2228', platenColor: '#17110f', stripeK: 12, leverColor: '#6b5530', barColor: '#2b2125', trackColor: '#6b5530',
+      keyColor: '#151113', keyEdge: '#6b5530', keyLabel: '#c9b48a',
+      typeColor: '#2a0a10', inkUneven: 35, typeSkew: .8, sigColor: '#7a0f1c', sigWidth: 4.6,
+      deskColor: '#1a1316', drawerColor: '#3a2226', creaseK: 40 } }
   ];
 
   // ---------- storage ----------
