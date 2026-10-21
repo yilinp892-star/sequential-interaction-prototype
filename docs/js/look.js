@@ -4,6 +4,10 @@
 // and re-render on the 'lp-look' event; plain colors and sizes reach the CSS as custom properties on :root.
 window.LP = window.LP || {};
 LP.look = (() => {
+  // Show the appearance panel? While false the panel is left off the page and the prototype always opens with
+  // the saved defaults (SAVED below), ignoring settings a browser stored earlier. Set to true to bring it back.
+  const SHOW_PANEL = false;
+
   // ---------- the settings ----------
   const PAPERS = [['plain', 'Plain paper'], ['lined', 'Lined paper'], ['grid', 'Grid paper'], ['translucent', 'Translucent paper']];
   const TEXTURES = [['none', 'None'], ['grain', 'Grain'], ['linen', 'Linen'], ['watercolor', 'Watercolor paper'], ['stain', 'Old paper stains']];
@@ -135,7 +139,7 @@ LP.look = (() => {
 
   let values = { ...DEFAULTS };
   let activePreset = null;
-  const saved = read(STORE);
+  const saved = SHOW_PANEL ? read(STORE) : null;
   if (saved && saved.values) {
     for (const k in saved.values) if (k in DEFAULTS && typeof saved.values[k] === typeof DEFAULTS[k]) values[k] = saved.values[k];
     activePreset = saved.preset || null;
@@ -448,12 +452,12 @@ LP.look = (() => {
 
   // space the stage keeps clear for the panel: beside it on wide screens, below it on narrow ones
   function reserve() {
-    if (ui.collapsed) return { left: 0, bottom: 0 };
+    if (!SHOW_PANEL || ui.collapsed) return { left: 0, bottom: 0 };
     if (window.innerWidth >= 760) return { left: panel.querySelector('.lk-sheet').offsetWidth + 16, bottom: 0 };
     return { left: 0, bottom: panel.querySelector('.lk-sheet').offsetHeight };
   }
 
-  document.body.appendChild(panel);
+  if (SHOW_PANEL) document.body.appendChild(panel);
   panel.classList.toggle('collapsed', !!ui.collapsed);
   tab.setAttribute('aria-expanded', String(!ui.collapsed));
   syncControls(); markPreset();
