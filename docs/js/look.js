@@ -1,11 +1,11 @@
 // Appearance: every visual setting of the prototype in one place, plus the floating panel that tunes them.
-// DEFAULTS below are the saved defaults ("恢复默认" returns here). The scenes read values with LP.look.get(key)
+// DEFAULTS below are the saved defaults ("Reset to defaults" returns here). The scenes read values with LP.look.get(key)
 // and re-render on the 'lp-look' event; plain colors and sizes reach the CSS as custom properties on :root.
 window.LP = window.LP || {};
 LP.look = (() => {
   // ---------- the settings ----------
-  const PAPERS = [['plain', '白纸'], ['lined', '横线纸'], ['grid', '方格纸'], ['translucent', '半透明纸']];
-  const TEXTURES = [['none', '无'], ['grain', '颗粒'], ['linen', '亚麻'], ['watercolor', '水彩纸'], ['stain', '旧纸污渍']];
+  const PAPERS = [['plain', 'Plain paper'], ['lined', 'Lined paper'], ['grid', 'Grid paper'], ['translucent', 'Translucent paper']];
+  const TEXTURES = [['none', 'None'], ['grain', 'Grain'], ['linen', 'Linen'], ['watercolor', 'Watercolor paper'], ['stain', 'Old paper stains']];
 
   const c = (key, label, def) => ({ key, label, type: 'color', def });
   const n = (key, label, def, min, max, step, unit) => ({ key, label, type: 'range', def, min, max, step, unit });
@@ -14,64 +14,64 @@ LP.look = (() => {
   const paperGroup = (p, name) => {
     const base = { plain: '#f4f4f4', lined: '#ececec', grid: '#e6e6e6', translucent: '#ffffff' }[p];
     const t = p === 'translucent';
-    const items = [c(p + 'Base', '底色', base)];
-    if (t) items.push(n('transAlpha', '透明度', 55, 10, 100, 1, '%'));
+    const items = [c(p + 'Base', 'Base color', base)];
+    if (t) items.push(n('transAlpha', 'Opacity', 55, 10, 100, 1, '%'));
     if (p === 'lined') items.push(
-      c('lineColor', '横线颜色', '#b0b0b0'),
-      n('lineW', '横线粗细', 1, .5, 4, .1, 'px'),
-      n('lineGap', '横线行距', 26, 14, 44, 1, 'px'),
-      c('marginColor', '左边竖线颜色', '#9a9a9a'),
-      n('marginX', '左边竖线位置', 19, 0, 80, 1, 'px'));
+      c('lineColor', 'Rule color', '#b0b0b0'),
+      n('lineW', 'Rule thickness', 1, .5, 4, .1, 'px'),
+      n('lineGap', 'Rule spacing', 26, 14, 44, 1, 'px'),
+      c('marginColor', 'Margin line color', '#9a9a9a'),
+      n('marginX', 'Margin line position', 19, 0, 80, 1, 'px'));
     if (p === 'grid') items.push(
-      c('gridColor', '方格颜色', '#c4c4c4'),
-      n('gridSize', '格子大小', 14, 6, 40, 1, 'px'));
+      c('gridColor', 'Grid color', '#c4c4c4'),
+      n('gridSize', 'Grid size', 14, 6, 40, 1, 'px'));
     items.push(
-      c(p + 'Border', '边框颜色', t ? '#a6a6a6' : '#8a8a8a'),
-      n(p + 'BorderW', '边框粗细', t ? 1 : 1.5, 0, 5, .1, 'px'),
-      n(p + 'Radius', '圆角', 2, 0, 24, 1, 'px'),
-      n(p + 'Shadow', '阴影深浅', t ? 6 : 17, 0, 60, 1, '%'),
-      n(p + 'ShadowOff', '阴影偏移', 4, 0, 16, .5, 'px'),
-      s(p + 'Texture', '纸张纹理', 'none', TEXTURES),
-      n(p + 'TexK', '纹理强度', 40, 0, 100, 1, '%'));
+      c(p + 'Border', 'Border color', t ? '#a6a6a6' : '#8a8a8a'),
+      n(p + 'BorderW', 'Border thickness', t ? 1 : 1.5, 0, 5, .1, 'px'),
+      n(p + 'Radius', 'Corner radius', 2, 0, 24, 1, 'px'),
+      n(p + 'Shadow', 'Shadow depth', t ? 6 : 17, 0, 60, 1, '%'),
+      n(p + 'ShadowOff', 'Shadow offset', 4, 0, 16, .5, 'px'),
+      s(p + 'Texture', 'Texture', 'none', TEXTURES),
+      n(p + 'TexK', 'Texture strength', 40, 0, 100, 1, '%'));
     return { id: 'paper-' + p, title: name, items };
   };
 
   const GROUPS = [
-    { id: 'atmo', title: '一、整体氛围', items: [
-      c('bg', '背景颜色', '#e4e4e3'),
-      c('guideColor', '引导文字颜色', '#555555'),
-      n('guideSize', '引导文字字号', 21, 14, 32, 1, 'px'),
-      c('hintColor', '提示小字颜色', '#666666'),
-      c('glowColor', '纸面光晕颜色', '#ffffff'),
-      n('glowK', '纸面光晕亮度', 100, 0, 250, 5, '%')] },
-    { id: 'paper', title: '二、纸张', sub: PAPERS.map(([p, name]) => paperGroup(p, name)) },
-    { id: 'machine', title: '三、打字机机身', items: [
-      c('bodyColor', '机身主体颜色', '#5e5e5e'),
-      c('platenColor', '滚筒颜色', '#3a3a3a'),
-      n('stripeK', '滚筒条纹明显程度', 8, 0, 40, 1, '%'),
-      c('leverColor', '换行拉杆颜色', '#3a3a3a'),
-      c('barColor', '打字杆颜色', '#3c3c3c'),
-      c('trackColor', '底部轨道和刻度颜色', '#9a9a9a')] },
-    { id: 'keys', title: '四、按键', items: [
-      c('keyColor', '按键颜色', '#2e2e2e'),
-      c('keyEdge', '按键边缘颜色', '#151515'),
-      c('keyLabel', '键帽字母颜色', '#bdbdbd'),
-      n('keySize', '按键大小', 38, 28, 46, 1, 'px'),
-      n('keyRadius', '按键圆角', 50, 0, 50, 1, '%'),
-      n('keyDepth', '按下去的深度', 4, 0, 10, .5, 'px')] },
-    { id: 'ink', title: '五、字和墨水', items: [
-      c('typeColor', '字的颜色', '#1b1b1b'),
-      n('typeSize', '字号', 18, 13, 24, .5, 'px'),
-      n('typeTrack', '字间距', 0, -2, 3, .1, 'px'),
-      n('typeLead', '行距', 26, 18, 40, 1, 'px'),
-      n('inkUneven', '墨水浓淡不均', 0, 0, 100, 1, '%'),
-      n('typeSkew', '字的轻微歪斜', 0, 0, 8, .1, '°'),
-      c('sigColor', '签名笔迹颜色', '#161616'),
-      n('sigWidth', '签名笔迹粗细', 4.2, 1, 10, .1, 'px')] },
-    { id: 'keep', title: '六、折信和抽屉', items: [
-      c('deskColor', '桌面颜色', '#e4e4e3'),
-      c('drawerColor', '抽屉颜色', '#cfcfcf'),
-      n('creaseK', '信纸折痕阴影深浅', 12, 0, 60, 1, '%')] }
+    { id: 'atmo', title: '1. Atmosphere', items: [
+      c('bg', 'Background color', '#e4e4e3'),
+      c('guideColor', 'Guide text color', '#555555'),
+      n('guideSize', 'Guide text size', 21, 14, 32, 1, 'px'),
+      c('hintColor', 'Hint text color', '#666666'),
+      c('glowColor', 'Paper glow color', '#ffffff'),
+      n('glowK', 'Paper glow brightness', 100, 0, 250, 5, '%')] },
+    { id: 'paper', title: '2. Paper', sub: PAPERS.map(([p, name]) => paperGroup(p, name)) },
+    { id: 'machine', title: '3. Typewriter body', items: [
+      c('bodyColor', 'Body color', '#5e5e5e'),
+      c('platenColor', 'Platen color', '#3a3a3a'),
+      n('stripeK', 'Platen stripe strength', 8, 0, 40, 1, '%'),
+      c('leverColor', 'Return lever color', '#3a3a3a'),
+      c('barColor', 'Type bar color', '#3c3c3c'),
+      c('trackColor', 'Track and scale color', '#9a9a9a')] },
+    { id: 'keys', title: '4. Keys', items: [
+      c('keyColor', 'Key color', '#2e2e2e'),
+      c('keyEdge', 'Key rim color', '#151515'),
+      c('keyLabel', 'Key letter color', '#bdbdbd'),
+      n('keySize', 'Key size', 38, 28, 46, 1, 'px'),
+      n('keyRadius', 'Key corner radius', 50, 0, 50, 1, '%'),
+      n('keyDepth', 'Press depth', 4, 0, 10, .5, 'px')] },
+    { id: 'ink', title: '5. Type and ink', items: [
+      c('typeColor', 'Type color', '#1b1b1b'),
+      n('typeSize', 'Type size', 18, 13, 24, .5, 'px'),
+      n('typeTrack', 'Letter spacing', 0, -2, 3, .1, 'px'),
+      n('typeLead', 'Line spacing', 26, 18, 40, 1, 'px'),
+      n('inkUneven', 'Uneven ink', 0, 0, 100, 1, '%'),
+      n('typeSkew', 'Letter tilt', 0, 0, 8, .1, '°'),
+      c('sigColor', 'Signature color', '#161616'),
+      n('sigWidth', 'Signature thickness', 4.2, 1, 10, .1, 'px')] },
+    { id: 'keep', title: '6. Fold and drawer', items: [
+      c('deskColor', 'Desk color', '#e4e4e3'),
+      c('drawerColor', 'Drawer color', '#cfcfcf'),
+      n('creaseK', 'Fold crease shadow', 12, 0, 60, 1, '%')] }
   ];
 
   const ALL = [];
@@ -85,8 +85,8 @@ LP.look = (() => {
   // ---------- presets (partial overrides on the defaults) ----------
   const allPapers = (o) => Object.fromEntries(PAPERS.flatMap(([p]) => Object.entries(o).map(([k, v]) => [p + k, typeof v === 'object' ? v[p] : v])));
   const PRESETS = [
-    { id: 'original', name: '原版', values: {} },
-    { id: 'morning', name: '清晨', values: {
+    { id: 'original', name: 'Original', values: {} },
+    { id: 'morning', name: 'Morning', values: {
       bg: '#f3ead8', guideColor: '#6b5a44', hintColor: '#8a7760', glowColor: '#fff4d6', glowK: 110,
       ...allPapers({ Base: { plain: '#ffffff', lined: '#fdfcf8', grid: '#fbfbf6', translucent: '#ffffff' }, Border: '#b9ad98', Shadow: { plain: 12, lined: 12, grid: 12, translucent: 5 } }),
       lineColor: '#a9c1dc', marginColor: '#d9a0a0', gridColor: '#c7d6e6',
@@ -94,7 +94,7 @@ LP.look = (() => {
       keyColor: '#34312d', keyEdge: '#1c1a18', keyLabel: '#e6dccb',
       typeColor: '#1f3a6b', sigColor: '#1d3466',
       deskColor: '#efe4cf', drawerColor: '#d8c9ad' } },
-    { id: 'night', name: '深夜', values: {
+    { id: 'night', name: 'Night', values: {
       bg: '#1d1f24', guideColor: '#cfc8b6', hintColor: '#9a9486', glowColor: '#ffd98a', glowK: 150,
       ...allPapers({ Base: { plain: '#f2e2b3', lined: '#efdcab', grid: '#ecd9a8', translucent: '#f6e6bb' }, Border: '#8c7a52', Shadow: { plain: 40, lined: 40, grid: 40, translucent: 20 }, ShadowOff: 6 }),
       transAlpha: 72, lineColor: '#c8b07a', marginColor: '#b98d5a', gridColor: '#cdb57f',
@@ -102,7 +102,7 @@ LP.look = (() => {
       keyColor: '#1a1b1f', keyEdge: '#08090a', keyLabel: '#d8cfb8',
       typeColor: '#111111', sigColor: '#0e0e0e',
       deskColor: '#262a31', drawerColor: '#3a3f48', creaseK: 30 } },
-    { id: 'oldletter', name: '旧信', values: {
+    { id: 'oldletter', name: 'Old letter', values: {
       bg: '#b59b7c', guideColor: '#4a3626', hintColor: '#5e4733', glowColor: '#ffe7c2', glowK: 120,
       ...allPapers({ Base: { plain: '#ecdcb8', lined: '#e8d6ae', grid: '#e5d2a8', translucent: '#f1e2c0' }, Border: '#8a6f4c', Radius: 3, Shadow: { plain: 25, lined: 25, grid: 25, translucent: 12 },
         Texture: { plain: 'stain', lined: 'stain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 60, lined: 55, grid: 45, translucent: 35 } }),
@@ -298,7 +298,7 @@ LP.look = (() => {
   const controls = {};
   const panel = document.createElement('aside');
   panel.id = 'lookPanel';
-  panel.setAttribute('aria-label', '外观控制面板');
+  panel.setAttribute('aria-label', 'Appearance panel');
   const fmt = (v, it) => {
     const d = (String(it.step).split('.')[1] || '').length;
     return (+v).toFixed(d);
@@ -351,17 +351,17 @@ LP.look = (() => {
   }
 
   panel.innerHTML = `
-    <button type="button" class="lk-tab" aria-expanded="true" aria-controls="lkSheet">外观</button>
+    <button type="button" class="lk-tab" aria-expanded="true" aria-controls="lkSheet">Appearance</button>
     <div class="lk-sheet" id="lkSheet">
-      <header class="lk-head"><h2>外观</h2><button type="button" class="lk-close" aria-label="收起面板">收起</button></header>
-      <div class="lk-presets" role="group" aria-label="一键预设"></div>
+      <header class="lk-head"><h2>Appearance</h2><button type="button" class="lk-close" aria-label="Collapse panel">Collapse</button></header>
+      <div class="lk-presets" role="group" aria-label="Presets"></div>
       <div class="lk-scroll"></div>
       <footer class="lk-foot">
-        <button type="button" class="lk-reset">恢复默认</button>
-        <button type="button" class="lk-copy">复制设置</button>
+        <button type="button" class="lk-reset">Reset to defaults</button>
+        <button type="button" class="lk-copy">Copy settings</button>
       </footer>
       <div class="lk-toast" role="status" aria-live="polite"></div>
-      <textarea class="lk-fallback" readonly hidden aria-label="设置文本"></textarea>
+      <textarea class="lk-fallback" readonly hidden aria-label="Settings text"></textarea>
     </div>`;
   const presetsEl = panel.querySelector('.lk-presets');
   PRESETS.forEach(p => {
@@ -382,28 +382,28 @@ LP.look = (() => {
   let toastT = null;
   function say(t) { toast.textContent = t; toast.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('on'), 2200); }
 
-  panel.querySelector('.lk-reset').addEventListener('click', () => { setAll({}, 'original'); say('已恢复默认值'); });
+  panel.querySelector('.lk-reset').addEventListener('click', () => { setAll({}, 'original'); say('Defaults restored'); });
 
   function settingsText() {
-    const lines = ['外观设置 · A Page for Yourself', ''];
+    const lines = ['Appearance settings · A Page for Yourself', ''];
     let last = null;
     for (const it of ALL) {
-      if (groupOf[it.key] !== last) { if (last) lines.push(''); last = groupOf[it.key]; lines.push(`【${last}】`); }
+      if (groupOf[it.key] !== last) { if (last) lines.push(''); last = groupOf[it.key]; lines.push(`[${last}]`); }
       let v = values[it.key];
       if (it.type === 'range') v = fmt(v, it) + ' ' + it.unit;
       if (it.type === 'select') v = `${(it.options.find(o => o[0] === v) || [, v])[1]} (${v})`;
       lines.push(`${it.label} (${it.key}): ${v}`);
     }
-    lines.push('', '把这些数值设为原型保存的默认值。保留面板代码以便以后调整。提交并推送改动。');
+    lines.push('', 'Set these values as the prototype\'s saved defaults. Keep the panel code for future adjustments. Commit and push the changes.');
     return lines.join('\n');
   }
   const fallback = panel.querySelector('.lk-fallback');
   panel.querySelector('.lk-copy').addEventListener('click', () => {
     const text = settingsText();
-    const manual = () => { fallback.hidden = false; fallback.value = text; fallback.focus(); fallback.select(); say('无法自动复制，已选中文本，请按 Ctrl/⌘+C'); };
+    const manual = () => { fallback.hidden = false; fallback.value = text; fallback.focus(); fallback.select(); say('Could not copy automatically. The text is selected: press Ctrl/⌘+C'); };
     fallback.hidden = true;
     try {
-      navigator.clipboard.writeText(text).then(() => say('已复制所有设置'), manual);
+      navigator.clipboard.writeText(text).then(() => say('All settings copied'), manual);
     } catch (e) { manual(); }
   });
 

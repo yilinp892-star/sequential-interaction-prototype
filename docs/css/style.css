@@ -302,17 +302,17 @@ body.at-desk { background: var(--desk); }
   pointer-events: auto; position: absolute; display: none;
   left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(12px + env(safe-area-inset-top, 0px));
   padding: 7px 14px; border-radius: 18px; border: 1px solid var(--lk-line);
-  background: var(--lk-bg); box-shadow: 0 3px 12px rgba(0,0,0,.14); cursor: pointer; letter-spacing: .08em;
+  background: var(--lk-bg); box-shadow: 0 3px 12px rgba(0,0,0,.14); cursor: pointer;
 }
 #lookPanel.collapsed .lk-tab { display: block; }
 #lookPanel .lk-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; }
-#lookPanel .lk-head h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .08em; }
+#lookPanel .lk-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
 #lookPanel .lk-close, #lookPanel .lk-foot button, #lookPanel .lk-presets button {
-  border: 1px solid var(--lk-line); background: var(--lk-bg); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+  white-space: nowrap; border: 1px solid var(--lk-line); background: var(--lk-bg); border-radius: 6px; padding: 5px 10px; cursor: pointer;
 }
 #lookPanel .lk-close { color: var(--lk-muted); padding: 3px 9px; }
 #lookPanel button:hover { background: var(--lk-field); }
-#lookPanel .lk-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--lk-line); }
+#lookPanel .lk-presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--lk-line); }
 #lookPanel .lk-presets button[aria-pressed="true"] { background: var(--lk-fg); border-color: var(--lk-fg); color: var(--lk-bg); }
 #lookPanel .lk-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 0 8px; }
 #lookPanel summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
