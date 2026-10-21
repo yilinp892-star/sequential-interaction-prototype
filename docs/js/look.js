@@ -1,5 +1,6 @@
 // Appearance: every visual setting of the prototype in one place, plus the floating panel that tunes them.
-// DEFAULTS below are the saved defaults ("Reset to defaults" returns here). The scenes read values with LP.look.get(key)
+// SAVED below holds the saved defaults (the page opens with them and "Reset to defaults" returns to them); any key not
+// listed there falls back to the Original look written in the control list. The scenes read values with LP.look.get(key)
 // and re-render on the 'lp-look' event; plain colors and sizes reach the CSS as custom properties on :root.
 window.LP = window.LP || {};
 LP.look = (() => {
@@ -79,17 +80,32 @@ LP.look = (() => {
   GROUPS.forEach(g => (g.sub || [g]).forEach(sg => sg.items.forEach(it => {
     ALL.push(it); groupOf[it.key] = g.sub ? `${g.title} · ${sg.title}` : g.title;
   })));
-  // settings that only presets change; they have no control in the panel
+  // settings with no control in the panel (set in SAVED or by a preset)
   const HIDDEN = { calmFont: 'default' };
   // the face for the guiding line, hints and buttons (typed text keeps the typewriter face)
   const FONTS = {
     gothic: { family: '"Grenze Gotisch", "UnifrakturMaguntia", "Old English Text MT", Georgia, serif', style: 'normal' }
   };
-  const DEFAULTS = { ...Object.fromEntries(ALL.map(it => [it.key, it.def])), ...HIDDEN };
+  // the Original look: the grey prototype as first built (the "Original" preset)
+  const ORIGINAL = { ...Object.fromEntries(ALL.map(it => [it.key, it.def])), ...HIDDEN };
+
+  const allPapers = (o) => Object.fromEntries(PAPERS.flatMap(([p]) => Object.entries(o).map(([k, v]) => [p + k, typeof v === 'object' ? v[p] : v])));
+  // the saved defaults: a gothic look (near-black, aged parchment, blood-red rules and signature, brass, blackletter guide text)
+  const SAVED = {
+    calmFont: 'gothic', bg: '#120d12', guideColor: '#c9b48a', guideSize: 25, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
+    ...allPapers({ Base: { plain: '#d9ccb0', lined: '#d3c4a6', grid: '#cfc0a2', translucent: '#e6dcc6' }, Border: '#3b2a2a', Radius: 0,
+      Shadow: { plain: 55, lined: 55, grid: 55, translucent: 35 }, ShadowOff: 7,
+      Texture: { plain: 'stain', lined: 'grain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 35, lined: 40, grid: 35, translucent: 25 } }),
+    transAlpha: 88, lineColor: '#8c2a2f', marginColor: '#5a0f16', gridColor: '#a08870',
+    bodyColor: '#2c2228', platenColor: '#17110f', stripeK: 12, leverColor: '#6b5530', barColor: '#2b2125', trackColor: '#6b5530',
+    keyColor: '#151113', keyEdge: '#6b5530', keyLabel: '#c9b48a',
+    typeColor: '#2a0a10', inkUneven: 35, typeSkew: .8, sigColor: '#7a0f1c', sigWidth: 4.6,
+    deskColor: '#1a1316', drawerColor: '#3a2226', creaseK: 40
+  };
+  const DEFAULTS = { ...ORIGINAL, ...SAVED };
   const META = Object.fromEntries(ALL.map(it => [it.key, it]));
 
-  // ---------- presets (partial overrides on the defaults) ----------
-  const allPapers = (o) => Object.fromEntries(PAPERS.flatMap(([p]) => Object.entries(o).map(([k, v]) => [p + k, typeof v === 'object' ? v[p] : v])));
+  // ---------- presets (partial overrides on the Original look) ----------
   const PRESETS = [
     { id: 'original', name: 'Original', values: {} },
     { id: 'morning', name: 'Morning', values: {
@@ -116,35 +132,16 @@ LP.look = (() => {
       bodyColor: '#5b4a3b', platenColor: '#2f251d', stripeK: 10, leverColor: '#3a2e24', barColor: '#463829', trackColor: '#8f7a62',
       keyColor: '#3a2e24', keyEdge: '#1e1711', keyLabel: '#e2cfaa',
       typeColor: '#4b3a2c', inkUneven: 55, typeSkew: 1.5, sigColor: '#5a4030',
-      deskColor: '#a3865f', drawerColor: '#7a5c3e', creaseK: 28 } },
-    { id: 'fresh', name: 'Fresh', values: {
-      bg: '#e6f0ea', guideColor: '#5f7d70', hintColor: '#7f9a8e', glowColor: '#f4fff9', glowK: 120,
-      ...allPapers({ Base: { plain: '#fdfefc', lined: '#fbfdf9', grid: '#fafcfb', translucent: '#f2fbff' }, Border: '#b8cfc3', Radius: 6,
-        Shadow: { plain: 10, lined: 10, grid: 10, translucent: 4 }, ShadowOff: 3 }),
-      transAlpha: 60, lineColor: '#bfe0d6', marginColor: '#f2b8b0', gridColor: '#cfe3ea',
-      bodyColor: '#a9c4b8', platenColor: '#6f8f84', stripeK: 10, leverColor: '#7d9a90', barColor: '#8aa79c', trackColor: '#b7cdc3',
-      keyColor: '#f7f4ec', keyEdge: '#b9cdc2', keyLabel: '#5f7d70',
-      typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
-      deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10 } },
-    { id: 'gothic', name: 'Gothic', values: {
-      calmFont: 'gothic', bg: '#120d12', guideColor: '#c9b48a', guideSize: 25, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
-      ...allPapers({ Base: { plain: '#d9ccb0', lined: '#d3c4a6', grid: '#cfc0a2', translucent: '#e6dcc6' }, Border: '#3b2a2a', Radius: 0,
-        Shadow: { plain: 55, lined: 55, grid: 55, translucent: 35 }, ShadowOff: 7,
-        Texture: { plain: 'stain', lined: 'grain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 35, lined: 40, grid: 35, translucent: 25 } }),
-      transAlpha: 88, lineColor: '#8c2a2f', marginColor: '#5a0f16', gridColor: '#a08870',
-      bodyColor: '#2c2228', platenColor: '#17110f', stripeK: 12, leverColor: '#6b5530', barColor: '#2b2125', trackColor: '#6b5530',
-      keyColor: '#151113', keyEdge: '#6b5530', keyLabel: '#c9b48a',
-      typeColor: '#2a0a10', inkUneven: 35, typeSkew: .8, sigColor: '#7a0f1c', sigWidth: 4.6,
-      deskColor: '#1a1316', drawerColor: '#3a2226', creaseK: 40 } }
+      deskColor: '#a3865f', drawerColor: '#7a5c3e', creaseK: 28 } }
   ];
 
   // ---------- storage ----------
-  const STORE = 'lp-look-v1', UI_STORE = 'lp-look-ui-v1';
+  const STORE = 'lp-look-v2', UI_STORE = 'lp-look-ui-v1';   // v2: Gothic became the saved default
   const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
   let values = { ...DEFAULTS };
-  let activePreset = 'original';
+  let activePreset = null;
   const saved = read(STORE);
   if (saved && saved.values) {
     for (const k in saved.values) if (k in DEFAULTS && typeof saved.values[k] === typeof DEFAULTS[k]) values[k] = saved.values[k];
@@ -313,7 +310,7 @@ LP.look = (() => {
     changed(); persist(); markPreset();
   }
   function setAll(v, preset) {
-    values = { ...DEFAULTS, ...v };
+    values = { ...(preset ? ORIGINAL : DEFAULTS), ...v };
     activePreset = preset || null;
     changed(); persist(); syncControls(); markPreset();
   }
@@ -410,7 +407,7 @@ LP.look = (() => {
   let toastT = null;
   function say(t) { toast.textContent = t; toast.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('on'), 2200); }
 
-  panel.querySelector('.lk-reset').addEventListener('click', () => { setAll({}, 'original'); say('Defaults restored'); });
+  panel.querySelector('.lk-reset').addEventListener('click', () => { setAll({}, null); say('Defaults restored'); });
 
   function settingsText() {
     const lines = ['Appearance settings · A Page for Yourself', ''];
@@ -422,7 +419,7 @@ LP.look = (() => {
       if (it.type === 'select') v = `${(it.options.find(o => o[0] === v) || [, v])[1]} (${v})`;
       lines.push(`${it.label} (${it.key}): ${v}`);
     }
-    if (values.calmFont !== DEFAULTS.calmFont) lines.push('', `Guide and hint font (calmFont, set by preset): ${values.calmFont}`);
+    lines.push('', `Guide and hint font (calmFont, no panel control): ${values.calmFont}`);
     lines.push('', 'Set these values as the prototype\'s saved defaults. Keep the panel code for future adjustments. Commit and push the changes.');
     return lines.join('\n');
   }

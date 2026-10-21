@@ -312,7 +312,7 @@ body.at-desk { background: var(--desk); }
 }
 #lookPanel .lk-close { color: var(--lk-muted); padding: 3px 9px; }
 #lookPanel button:hover { background: var(--lk-field); }
-#lookPanel .lk-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--lk-line); }
+#lookPanel .lk-presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--lk-line); }
 #lookPanel .lk-presets button[aria-pressed="true"] { background: var(--lk-fg); border-color: var(--lk-fg); color: var(--lk-bg); }
 #lookPanel .lk-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 0 8px; }
 #lookPanel summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
