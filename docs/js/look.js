@@ -110,7 +110,16 @@ LP.look = (() => {
       bodyColor: '#5b4a3b', platenColor: '#2f251d', stripeK: 10, leverColor: '#3a2e24', barColor: '#463829', trackColor: '#8f7a62',
       keyColor: '#3a2e24', keyEdge: '#1e1711', keyLabel: '#e2cfaa',
       typeColor: '#4b3a2c', inkUneven: 55, typeSkew: 1.5, sigColor: '#5a4030',
-      deskColor: '#a3865f', drawerColor: '#7a5c3e', creaseK: 28 } }
+      deskColor: '#a3865f', drawerColor: '#7a5c3e', creaseK: 28 } },
+    { id: 'fresh', name: 'Fresh', values: {
+      bg: '#e6f0ea', guideColor: '#5f7d70', hintColor: '#7f9a8e', glowColor: '#f4fff9', glowK: 120,
+      ...allPapers({ Base: { plain: '#fdfefc', lined: '#fbfdf9', grid: '#fafcfb', translucent: '#f2fbff' }, Border: '#b8cfc3', Radius: 6,
+        Shadow: { plain: 10, lined: 10, grid: 10, translucent: 4 }, ShadowOff: 3 }),
+      transAlpha: 60, lineColor: '#bfe0d6', marginColor: '#f2b8b0', gridColor: '#cfe3ea',
+      bodyColor: '#a9c4b8', platenColor: '#6f8f84', stripeK: 10, leverColor: '#7d9a90', barColor: '#8aa79c', trackColor: '#b7cdc3',
+      keyColor: '#f7f4ec', keyEdge: '#b9cdc2', keyLabel: '#5f7d70',
+      typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
+      deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10 } }
   ];
 
   // ---------- storage ----------
