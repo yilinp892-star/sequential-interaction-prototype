@@ -13,9 +13,10 @@ LP.scenes.type = (() => {
   const TOP = 30;                 // carriage top
   const C0 = 380;                 // carriage x at the start of a line
   const LINE_X = 180;             // line start inside the carriage
-  const CW = 10.8;                // one character step
-  const MAX = 23, BELL_AT = 18;   // characters per line; the bell (and the lever) at 18
-  const LINE_H = 26;
+  // one character step, line height and line length follow the panel's letter spacing and line spacing (see relayout)
+  let CW = 10.8;                  // one character step
+  let MAX = 23, BELL_AT = 18;     // characters per line; the bell (and the lever) at 18
+  let LINE_H = 26;
   const ROWS_N = 8;               // lines on the page
   const REST = -78;               // type bar angle at rest
   const STICK = 8;                // pull this far before the lever's hook lets go
@@ -25,7 +26,7 @@ LP.scenes.type = (() => {
   // one quiet invitation for the whole page; it fades once typing begins
   const INVITE = 'Write something for yourself.';
 
-  const BAR_SVG = `<svg viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="184" r="9" fill="#5a5a5a" stroke="#333" stroke-width="1.5"/><circle cx="30" cy="184" r="3" fill="#cfcfcf"/><rect x="27" y="30" width="6" height="154" fill="#7a7a7a"/><rect x="18" y="10" width="24" height="24" rx="2" fill="#3c3c3c" stroke="#1e1e1e" stroke-width="1.5"/><rect x="23" y="15" width="14" height="14" fill="#6a6a6a"/></svg>`;
+  const BAR_SVG = `<svg viewBox="0 0 60 200" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="184" r="9" style="fill:var(--bar-pivot);stroke:var(--bar-pivot-edge)" stroke-width="1.5"/><circle cx="30" cy="184" r="3" style="fill:var(--bar-dot)"/><rect x="27" y="30" width="6" height="154" style="fill:var(--bar-stem)"/><rect x="18" y="10" width="24" height="24" rx="2" style="fill:var(--bar);stroke:var(--bar-edge)" stroke-width="1.5"/><rect x="23" y="15" width="14" height="14" style="fill:var(--bar-face)"/></svg>`;
 
   const carriage = q('.carriage'), linesEl = q('.lines'), face = q('.paperFace'), stripes = q('.stripes');
   const lever = q('.lever'), grip = q('.grip'), gripPulse = q('.gripPulse'), track = q('.track');
@@ -104,10 +105,11 @@ LP.scenes.type = (() => {
   function init(data) {
     paper = data.paper || 'plain';
     face.className = 'paperFace ' + paper;
+    LP.paper.styleFace(face, paper);
     linesEl.querySelectorAll('.ch').forEach(n => n.remove());
     barsEl.innerHTML = ''; bars = []; addBar();
     finishedRows = [];
-    row = 0; newRowState();
+    row = 0; relayout(); newRowState();
     mode = 'type';
     carX = C0; carV = 0; held = new Map(); lastStrike = 0;
     paperY = 0; paperV = 0; tilt = 0; tiltTarget = 0;
@@ -172,8 +174,10 @@ LP.scenes.type = (() => {
     node.className = 'ch';
     node.textContent = ch;
     const slot = jam ? Math.max(0, pos - 1) : pos;
-    node.style.left = (LINE_X - 151 + slot * CW - 0.5) + 'px';
-    node.style.top = (268 + row * LINE_H) + 'px';
+    node._row = row; node._slot = slot;
+    node.style.setProperty('--rr', (Math.random() * 2 - 1).toFixed(3));   // this letter's tilt, scaled by the panel
+    node.style.setProperty('--ru', Math.random().toFixed(3));             // and how much ink it lost
+    place(node);
     node.style.opacity = 0;
     if (jam) node.style.transform = `translate(${(Math.random() - .5) * 6}px, ${(Math.random() - .5) * 5}px) rotate(${(Math.random() - .5) * 16}deg)`;
     linesEl.appendChild(node);
@@ -215,6 +219,29 @@ LP.scenes.type = (() => {
     };
     if (h.landed) finish(); else setTimeout(finish, Math.max(0, 100 - holdMs));
   }
+
+  // where a letter sits on the page; the baseline stays put when the font size changes
+  function place(node) {
+    const size = LP.look.get('typeSize');
+    node.style.left = (LINE_X - 151 + node._slot * CW - 0.5) + 'px';
+    node.style.top = (268 + 14.4 - size * .8 + node._row * LINE_H).toFixed(2) + 'px';
+  }
+  // the panel changed letter spacing, line spacing or size: re-space the page and the carriage
+  function relayout() {
+    CW = 10.8 + LP.look.get('typeTrack');
+    LINE_H = LP.look.get('typeLead');
+    MAX = Math.max(12, Math.min(28, Math.floor(250 / CW)));
+    BELL_AT = MAX - 5;
+    root.style.setProperty('--cw', CW + 'px');
+    linesEl.querySelectorAll('.ch').forEach(place);
+    if (mode === 'type' && shown >= MAX) locked = true;
+    else if (mode === 'type' && locked && shown < MAX) locked = false;
+    if (mode === 'type' && !drag) buildTrack();
+  }
+  window.addEventListener('lp-look', () => {
+    LP.paper.styleFace(face, paper);
+    if (mode) relayout();
+  });
 
   function advance() {
     shown = Math.min(shown + 1, MAX);
@@ -276,6 +303,7 @@ LP.scenes.type = (() => {
   };
   window.addEventListener('keydown', e => {
     if (!api.active) return;
+    if (LP.look.ownsKey(e)) return;              // typing a color code in the panel
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Backspace') { e.preventDefault(); if (!e.repeat) startRewind('k:' + e.code); return; }
     if (e.key === 'Enter') { e.preventDefault(); if (!e.repeat) pingLever(); return; }
@@ -289,6 +317,7 @@ LP.scenes.type = (() => {
     if (h && !h.k && keyEls[vis]) { h.k = keyEls[vis]; h.k.target = h.dead ? 3 : 4; }
   });
   window.addEventListener('keyup', e => {
+    if (LP.look.ownsKey(e)) return;
     if (e.key === 'Backspace') stopRewind('k:' + e.code);
     release('k:' + e.code);
   });
@@ -316,9 +345,9 @@ LP.scenes.type = (() => {
     const x0 = C0 - n * CW + GRIP_DX, x1 = C0 + GRIP_DX;
     const ns = 'http://www.w3.org/2000/svg';
     const mk = (tag, attrs) => { const el = document.createElementNS(ns, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); track.appendChild(el); return el; };
-    mk('line', { x1: x0, x2: x1, y1: TRACK_Y, y2: TRACK_Y, stroke: '#c9c9c8', 'stroke-width': 7, 'stroke-linecap': 'round' });
-    for (let i = 1; i <= n; i++) notches.push(mk('rect', { x: x0 + i * CW - 1, y: TRACK_Y - 6, width: 2, height: 12, rx: 1, fill: '#b9b9b8' }));
-    mk('rect', { x: x1 + 5, y: TRACK_Y - 12, width: 5, height: 24, rx: 2, fill: '#7a7a7a' });
+    mk('line', { x1: x0, x2: x1, y1: TRACK_Y, y2: TRACK_Y, style: 'stroke:var(--track-line)', 'stroke-width': 7, 'stroke-linecap': 'round' });
+    for (let i = 1; i <= n; i++) notches.push(mk('rect', { x: x0 + i * CW - 1, y: TRACK_Y - 6, width: 2, height: 12, rx: 1, style: 'fill:var(--track-notch)' }));
+    mk('rect', { x: x1 + 5, y: TRACK_Y - 12, width: 5, height: 24, rx: 2, style: 'fill:var(--track-tick)' });
   }
 
   grip.addEventListener('pointerdown', (e) => {
@@ -464,7 +493,7 @@ LP.scenes.type = (() => {
     else springBack();
   }
   window.addEventListener('wheel', (e) => {
-    if (!api.active || mode === 'out') return;
+    if (!api.active || mode === 'out' || LP.look.owns(e)) return;
     const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
     const dx = e.deltaX * k, dy = e.deltaY * k;
     if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
@@ -480,7 +509,7 @@ LP.scenes.type = (() => {
   }, { passive: false });
   const touches = new Map();
   let touchAvg = null;
-  window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') { touches.set(e.pointerId, e.clientX); touchAvg = null; } });
+  window.addEventListener('pointerdown', e => { if (e.pointerType === 'touch' && !LP.look.owns(e)) { touches.set(e.pointerId, e.clientX); touchAvg = null; } });
   window.addEventListener('pointermove', e => {
     if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
     touches.set(e.pointerId, e.clientX);
@@ -590,19 +619,20 @@ LP.scenes.type = (() => {
 
     tilt += (tiltTarget - tilt) * .25;
     lever.style.transform = `rotate(${tilt.toFixed(2)}deg)`;
-    notches.forEach((n, i) => n.setAttribute('fill', (mode === 'pull' && (i < notch || finishing)) ? '#3a3a3a' : '#b9b9b8'));
+    notches.forEach((n, i) => { const on = mode === 'pull' && (i < notch || finishing); if (n._on !== on) { n._on = on; n.style.fill = on ? 'var(--track-on)' : 'var(--track-notch)'; } });
 
     keysEl.classList.toggle('locked', locked || mode !== 'type');
     drawGauge();
 
-    // keys sink slowly and deeper the longer they are held
+    // keys sink slowly and deeper the longer they are held; the panel scales how far
+    const depthK = LP.look.get('keyDepth') / 4;
     for (const ch in keyEls) {
       const k = keyEls[ch];
       let tgt = k.target;
       for (const h of held.values()) if (h.k === k && !h.dead) tgt = Math.min(7, 4 + (now - h.t0) / 160);
       const speed = tgt > k.depth ? .12 : .08;
       k.depth += (tgt - k.depth) * speed;
-      k.cap.style.transform = `translateY(${k.depth.toFixed(2)}px)`;
+      k.cap.style.transform = `translateY(${(k.depth * depthK).toFixed(2)}px)`;
     }
     // letters darken while still held
     for (const h of held.values()) {

@@ -21,15 +21,25 @@ LP.scenes.keep = (() => {
   const inkCv = q('.ink'), demoCv = q('.demoInk');
   const ink = inkCv.getContext('2d'); ink.scale(2, 2);
   const dink = demoCv.getContext('2d'); dink.scale(2, 2);
-  const signZone = q('.signZone'), grabZone = q('.grabZone');
+  const signZone = q('.signZone'), grabZone = q('.grabZone'), crease = q('.crease');
   const drawerIn = q('.drawer-in'), drawerContent = q('.drawer-content'), drawerFront = q('.drawer-front');
   const touch = q('.touch');
 
   let rows = [], paper = 'plain';
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   // the page as typed: the chosen paper, the user's lines, a signature line
+  // letters are placed one by one so spacing, tilt and uneven ink match the panel (the letter is drawn at 0.533 of the typewriter page)
+  const K = 9.6 / 18;
+  const jitter = (i, j, salt) => { const x = Math.sin(i * 127.1 + j * 311.7 + salt * 74.7) * 43758.5453; return x - Math.floor(x); };
   function letterSVG(id, dot) {
-    const text = rows.map((t, i) => `<text x="40" y="${42 + i * 20}" font-family="'Courier Prime','Courier New',monospace" font-size="9.6" fill="#1f1f1f" style="white-space:pre">${esc(t)}</text>`).join('');
+    const L = LP.look;
+    const size = L.get('typeSize') * K, step = (10.8 + L.get('typeTrack')) * K, lead = L.get('typeLead') * 20 / 26;
+    const skew = L.get('typeSkew'), uneven = L.get('inkUneven') / 100, color = L.get('typeColor');
+    const text = rows.map((t, i) => {
+      const spans = [...t].map((ch, j) => ch === ' ' ? '' :
+        `<tspan x="${(40 + j * step + (5.76 - size * .6) / 2).toFixed(2)}" rotate="${(skew * (jitter(i, j, 1) * 2 - 1)).toFixed(2)}" fill-opacity="${(1 - uneven * jitter(i, j, 2)).toFixed(3)}">${esc(ch)}</tspan>`).join('');
+      return `<text y="${(42 + i * lead).toFixed(2)}" font-family="'Courier Prime','Courier New',monospace" font-size="${size.toFixed(2)}" fill="${color}">${spans}</text>`;
+    }).join('');
     return LP.paper.inner(paper, id) + `<g>${text}</g>` +
       `<line x1="70" y1="214" x2="166" y2="214" stroke="#3a3a3a" stroke-width="1.5"/>` +
       (dot ? `<circle cx="70" cy="214" r="3" fill="#2a2a2a"/>` : '');
@@ -41,10 +51,28 @@ LP.scenes.keep = (() => {
   let phase, sig, pen, penTarget, drawing, foldAt, foldAngle, lx, ly, ltx, lty, drag, liftY;
   let userActed, demo, demoNext, lastActivity, insertT, insertFrom, restT, lsc, open, openT, inDrawer, saidShort;
 
-  function init() {
-    if (letter.parentNode !== root) root.insertBefore(letter, touch);
+  function drawLetter() {
     topFront.innerHTML = letterSVG('kt', true);
     botFront.innerHTML = letterSVG('kb', false);
+    const p = LP.look.paper(paper);
+    topBack.style.background = LP.look.shade(p.base, -.09);
+    topBack.style.border = p.bw > 0 ? `${p.bw}px solid ${p.border}` : 'none';
+  }
+  // signature ink in the panel's color, at its thickness (4.2px is the original widest stroke)
+  const sigInk = a => LP.look.rgba(LP.look.get('sigColor'), a);
+  const sigW = () => LP.look.get('sigWidth') / 4.2;
+  window.addEventListener('lp-look', () => {
+    drawLetter();
+    // recolor ink already on the page, keeping its strokes and pools
+    ink.save(); ink.setTransform(1, 0, 0, 1, 0, 0);
+    ink.globalCompositeOperation = 'source-in';
+    ink.fillStyle = LP.look.get('sigColor'); ink.fillRect(0, 0, inkCv.width, inkCv.height);
+    ink.restore();
+  });
+
+  function init() {
+    if (letter.parentNode !== root) root.insertBefore(letter, touch);
+    drawLetter();
     ink.clearRect(0, 0, 260, 338); dink.clearRect(0, 0, 260, 338);
     inkCv.style.transition = ''; inkCv.style.opacity = 1; demoCv.style.opacity = 1;
     phase = 'sign'; sig = 0; pen = null; penTarget = null; drawing = false; foldAt = 0;
@@ -73,8 +101,8 @@ LP.scenes.keep = (() => {
     let r = 0;
     (function grow() {
       r += .5;
-      ink.fillStyle = 'rgba(25,25,25,.35)';
-      ink.beginPath(); ink.arc(x, y, r, 0, Math.PI * 2); ink.fill();
+      ink.fillStyle = sigInk(.35);
+      ink.beginPath(); ink.arc(x, y, r * sigW(), 0, Math.PI * 2); ink.fill();
       if (r < 3.2) requestAnimationFrame(grow);
     })();
   }
@@ -109,14 +137,14 @@ LP.scenes.keep = (() => {
     A.scratch(d);
     if (d < .25) {
       // resting: ink pools and spreads
-      ink.fillStyle = 'rgba(25,25,25,.05)';
-      ink.beginPath(); ink.arc(pen.x, pen.y, 2 + Math.random() * 3.5, 0, Math.PI * 2); ink.fill();
+      ink.fillStyle = sigInk(.05);
+      ink.beginPath(); ink.arc(pen.x, pen.y, (2 + Math.random() * 3.5) * sigW(), 0, Math.PI * 2); ink.fill();
       return;
     }
     sig += d;
     if (d > 6 && Math.random() < .35) return;           // fast strokes skip and break
-    const w = Math.max(.7, Math.min(4.2, 4.6 - d * .55));
-    ink.strokeStyle = 'rgba(22,22,22,.92)'; ink.lineWidth = w; ink.lineCap = 'round'; ink.lineJoin = 'round';
+    const w = Math.max(.7, Math.min(4.2, 4.6 - d * .55)) * sigW();
+    ink.strokeStyle = sigInk(.92); ink.lineWidth = w; ink.lineCap = 'round'; ink.lineJoin = 'round';
     ink.beginPath(); ink.moveTo(before.x, before.y); ink.lineTo(pen.x, pen.y); ink.stroke();
   }
 
@@ -287,6 +315,7 @@ LP.scenes.keep = (() => {
     const back = foldAngle > 90;
     topFront.style.display = back ? 'none' : '';
     topBack.style.display = back ? 'block' : 'none';
+    crease.style.opacity = (foldAngle / 180).toFixed(3);
   }
 
   api.enter = (data) => {

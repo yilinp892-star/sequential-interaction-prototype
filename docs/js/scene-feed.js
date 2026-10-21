@@ -29,6 +29,8 @@ LP.scenes.feed = (() => {
   const touch = root.querySelector('.touch');
 
   const toStage = e => LP.local(e, api);
+  // the glow under the roller, scaled by the panel's brightness
+  const glowOp = v => Math.min(1, v * LP.look.get('glowK') / 100).toFixed(3);
   const tick = (f, v, d) => A.tick(f, v, d);
   function rubSound(type, speed) {
     const [f, v] = RUB_SOUND[type];
@@ -77,6 +79,16 @@ LP.scenes.feed = (() => {
     el.addEventListener('pointerdown', (e) => onDown(e, s));
     return s;
   }
+
+  // the panel changed the look: redraw each sheet's paper, keeping its rub-trail canvas
+  window.addEventListener('lp-look', () => {
+    sheets.forEach((s, i) => {
+      const old = s.el.querySelector('svg');
+      const tmp = document.createElement('div');
+      tmp.innerHTML = LP.paper.sheetSVG(s.type, 'f' + i);
+      old.replaceWith(tmp.firstChild);
+    });
+  });
 
   function init() {
     sheets.forEach(s => s.el.remove());
@@ -253,7 +265,7 @@ LP.scenes.feed = (() => {
     clip.appendChild(s.el);
     ghost.style.opacity = 0;
     slotGlow.classList.remove('pulse');
-    slotGlow.style.opacity = .35;
+    slotGlow.style.opacity = glowOp(.35);
     roller.style.opacity = 1;
     // the roller takes the paper in, notch by notch
     const finalY = SLOT_Y - 36 - P.oy;
@@ -380,7 +392,7 @@ LP.scenes.feed = (() => {
         s.rot *= .9;
         glow = Math.max(glow, Math.max(0, 1 - d / 360));
         slotGlow.classList.remove('pulse');
-        slotGlow.style.opacity = (.15 + glow * .7).toFixed(3);
+        slotGlow.style.opacity = glowOp(.15 + glow * .7);
         if (d < 26) feed(s);
         else if (Math.hypot(s.gvx, s.gvy) < .25 && d > 60) { s.mode = 'return'; s.gvx = s.gvy = 0; }
       } else if (s.mode === 'return') {
@@ -393,7 +405,7 @@ LP.scenes.feed = (() => {
       }
       if (s.mode === 'drag') {
         slotGlow.classList.remove('pulse');
-        slotGlow.style.opacity = (.15 + glow * .7).toFixed(3);
+        slotGlow.style.opacity = glowOp(.15 + glow * .7);
         roller.style.opacity = (.75 + glow * .25).toFixed(3);
       }
 

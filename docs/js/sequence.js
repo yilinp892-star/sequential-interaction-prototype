@@ -16,6 +16,7 @@
       setTimeout(() => { if (current !== prev) { prev.el.classList.remove('shown'); if (prev.leave) prev.leave(); } }, 1500);
     }
     setTimeout(() => {
+      document.body.classList.toggle('at-desk', name === 'keep');
       next.enter(data || {});
       next.el.style.transition = 'none';
       next.el.style.transform = 'translateY(16px)';

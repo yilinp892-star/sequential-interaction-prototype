@@ -8,14 +8,19 @@ LP.scenes = LP.scenes || {};
   const guide = document.getElementById('guide');
 
   LP.scale = 1;
+  // the stage keeps clear of the appearance panel: it fits into the space beside (or above) it
   function fit() {
-    const s = Math.min(1, (window.innerWidth - 24) / LP.W, (window.innerHeight - 24) / LP.H);
+    const res = LP.look ? LP.look.reserve() : { left: 0, bottom: 0 };
+    document.body.style.paddingLeft = res.left + 'px';
+    document.body.style.paddingBottom = res.bottom + 'px';
+    const s = Math.min(1, (window.innerWidth - res.left - 24) / LP.W, (window.innerHeight - res.bottom - 24) / LP.H);
     LP.scale = Math.max(.2, s);
     stage.style.transform = `scale(${LP.scale})`;
     frame.style.width = (LP.W * LP.scale) + 'px';
     frame.style.height = (LP.H * LP.scale) + 'px';
   }
   window.addEventListener('resize', fit); fit();
+  LP.refit = fit;
 
   // pointer position in stage coordinates, and in a scene's own coordinates
   LP.toStage = (e) => {

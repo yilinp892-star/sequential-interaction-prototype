@@ -5,6 +5,11 @@
   --soft: #9a9a9a;
   --key: #2e2e2e;
   --key-edge: #151515;
+  /* the rest of the look is set by js/look.js; these are fallbacks */
+  --guide: #555; --guide-size: 21px; --hint: #666;
+  --glow: #fff; --glow-k: 1;
+  --type-ink: #1b1b1b; --type-size: 18px; --uneven: 0; --skew: 0deg;
+  --ks: 38px; --kr: .5; --stripe: .08; --crease: .12;
   --type: "Courier Prime", "Courier New", Courier, monospace;
   --calm: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   color-scheme: light;
@@ -15,8 +20,10 @@ body {
   background: var(--bg); color: var(--ink);
   font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
+  overflow: hidden; transition: background-color 1.4s ease;
 }
+/* the sign-and-keep scene happens at the desk: the whole window takes the desk color */
+body.at-desk { background: var(--desk); }
 [hidden] { display: none !important; }
 
 #frame { position: relative; width: 1000px; height: 800px; overflow: hidden; }
@@ -36,7 +43,7 @@ body {
 /* the quiet guiding line */
 #guide {
   position: absolute; left: 80px; right: 80px; top: 22px; height: 40px; line-height: 40px;
-  text-align: center; font-family: var(--calm); font-style: italic; font-size: 21px; color: #555;
+  text-align: center; font-family: var(--calm); font-style: italic; font-size: var(--guide-size); color: var(--guide);
   opacity: 0; transition: opacity 1.1s ease; pointer-events: none; z-index: 40;
 }
 #guide.on { opacity: 1; }
@@ -50,12 +57,12 @@ body {
 
 #newPage {
   position: absolute; left: 50%; top: 700px; transform: translateX(-50%);
-  font-family: var(--calm); font-style: italic; font-size: 19px; color: var(--ink);
+  font-family: var(--calm); font-style: italic; font-size: 19px; color: var(--guide);
   background: transparent; border: 1px solid var(--soft); border-radius: 24px;
   padding: 10px 28px; cursor: pointer; opacity: 0; transition: opacity 1.4s ease, background .3s ease; z-index: 60;
 }
 #newPage.on { opacity: 1; }
-#newPage:hover { background: #d8d8d7; }
+#newPage:hover { background: color-mix(in srgb, var(--guide) 14%, transparent); }
 #newPage:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* ================= 1 · feed the paper ================= */
@@ -96,16 +103,16 @@ body {
 #sceneFeed .roller svg { position: absolute; inset: 0; width: 352px; height: 132px; }
 #sceneFeed .stripes {
   position: absolute; left: 40px; top: 38px; width: 272px; height: 57px; border-radius: 29px;
-  background: repeating-linear-gradient(180deg, rgba(255,255,255,.09) 0 3px, rgba(255,255,255,0) 3px 10px);
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,var(--stripe)) 0 3px, rgba(255,255,255,0) 3px 10px);
   background-position: 0 0; transition: background-position .07s ease-out; pointer-events: none;
 }
 #sceneFeed .slotGlow {
   position: absolute; left: 340px; top: 464px; width: 220px; height: 9px;
-  border-radius: 2px; background: #fff; opacity: 0; pointer-events: none;
-  box-shadow: 0 0 18px 4px #fff;
+  border-radius: 2px; background: var(--glow); opacity: 0; pointer-events: none;
+  box-shadow: 0 0 calc(18px * var(--glow-k)) calc(4px * var(--glow-k)) var(--glow);
 }
 #sceneFeed .slotGlow.pulse { animation: pulse 2.2s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity: .12 } 50% { opacity: .38 } }
+@keyframes pulse { 0%,100% { opacity: calc(.12 * var(--glow-k)) } 50% { opacity: calc(.38 * var(--glow-k)) } }
 #sceneFeed .ghost {
   position: absolute; left: 381px; top: 404px; width: 138px; height: 60px;
   border: 1.5px dashed var(--soft); border-bottom: none;
@@ -125,34 +132,21 @@ body {
 #sceneType .paperClip { position: absolute; left: 151px; top: 0; width: 310px; height: 302px; overflow: visible; clip-path: inset(-1200px -14px 0 -14px); pointer-events: none; }
 #sceneType .lines { position: absolute; left: 0; top: 0; width: 310px; will-change: transform; }
 #sceneType .paperFace {
-  /* a real sheet, the same proportions as the papers on the desk (310 × 418) */
+  /* a real sheet, the same proportions as the papers on the desk (310 × 418); colors come from LP.paper.styleFace */
   position: absolute; left: 0; top: 218px; width: 310px; height: 418px;
   border: 1.5px solid #8a8a8a; border-radius: 2px; background-color: #f4f4f4;
   box-shadow: 3px 4px 0 rgba(0,0,0,.1);
 }
-#sceneType .paperFace.lined {
-  background-color: #ececec;
-  background-image:
-    linear-gradient(#ececec, #ececec),
-    linear-gradient(to right, transparent 19px, #9a9a9a 19px, #9a9a9a 20px, transparent 20px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 15px, #b0b0b0 15px, #b0b0b0 16px, transparent 16px, transparent 26px);
-  background-size: 100% 36px, auto, auto;
-  background-repeat: no-repeat, repeat, repeat;
-}
-#sceneType .paperFace.grid {
-  background-color: #e6e6e6;
-  background-image:
-    repeating-linear-gradient(to right, #c4c4c4 0, #c4c4c4 1px, transparent 1px, transparent 14px),
-    repeating-linear-gradient(to bottom, #c4c4c4 0, #c4c4c4 1px, transparent 1px, transparent 14px);
-}
-#sceneType .paperFace.translucent {
-  background-color: rgba(255,255,255,.55);
-  background-image: linear-gradient(172deg, rgba(255,255,255,.65), rgba(255,255,255,0) 35%);
-  border-color: #a6a6a6;
+#sceneType .paperFace::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: var(--tex, none) center / 100% 100% no-repeat; opacity: var(--tex-k, 0);
 }
 #sceneType .ch {
-  position: absolute; font-family: var(--type); font-size: 18px; line-height: 1;
-  color: var(--ink); width: 10.8px; text-align: center; transform-origin: 50% 80%; white-space: pre;
+  position: absolute; font-family: var(--type); font-size: var(--type-size); line-height: 1;
+  color: var(--type-ink); width: var(--cw, 10.8px); text-align: center; transform-origin: 50% 80%; white-space: pre;
+  /* each letter carries its own random --rr (tilt) and --ru (ink loss) */
+  rotate: calc(var(--skew) * var(--rr, 0));
+  filter: opacity(calc(1 - var(--uneven) * var(--ru, 0)));
 }
 /* rewinding time: the ink lifts off the page and fades */
 #sceneType .ch.fading {
@@ -161,7 +155,7 @@ body {
 }
 #sceneType .stripes {
   position: absolute; left: 72px; top: 302px; width: 468px; height: 79px; border-radius: 40px;
-  background: repeating-linear-gradient(180deg, rgba(255,255,255,.08) 0 3px, rgba(255,255,255,0) 3px 11px);
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,var(--stripe)) 0 3px, rgba(255,255,255,0) 3px 11px);
   pointer-events: none;
 }
 #sceneType .needle { position: absolute; left: -100px; top: 0; width: 140px; height: 500px; overflow: visible; pointer-events: none; }
@@ -186,24 +180,27 @@ body {
 #sceneType .bar svg { width: 60px; height: 200px; display: block; }
 #sceneType .keys { position: absolute; left: 0; top: 0; width: 1000px; height: 740px; pointer-events: none; transition: opacity .6s ease; }
 #sceneType .keys.locked { opacity: .35; }
-#sceneType .key { position: absolute; width: 38px; height: 42px; pointer-events: auto; cursor: pointer; }
+#sceneType .key {
+  position: absolute; width: var(--ks); height: calc(var(--ks) + 4px); pointer-events: auto; cursor: pointer;
+  margin-left: calc((38px - var(--ks)) / 2); margin-top: calc((38px - var(--ks)) / 2);
+}
 #sceneType .key .cap {
-  position: absolute; left: 0; top: 0; width: 38px; height: 38px; border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, var(--key) 55%, #3a3a3a 56%, var(--key) 62%);
+  position: absolute; left: 0; top: 0; width: var(--ks); height: var(--ks); border-radius: calc(var(--ks) * var(--kr));
+  background: radial-gradient(circle at 50% 50%, var(--key) 55%, var(--key-ring) 56%, var(--key) 62%);
   border: 2px solid var(--key-edge);
-  color: #bdbdbd; font-family: var(--type); font-weight: 700; font-size: 13px;
+  color: var(--key-label); font-family: var(--type); font-weight: 700; font-size: calc(var(--ks) * .342);
   display: grid; place-items: center; will-change: transform;
 }
-#sceneType .key .stem { position: absolute; left: 0; top: 5px; width: 38px; height: 38px; border-radius: 50%; background: #4a4a4a; }
-#sceneType .key.space { width: 230px; }
-#sceneType .key.space .cap, #sceneType .key.space .stem { width: 230px; border-radius: 19px; }
+#sceneType .key .stem { position: absolute; left: 0; top: 5px; width: var(--ks); height: var(--ks); border-radius: calc(var(--ks) * var(--kr)); background: var(--key-stem); }
+#sceneType .key.space { width: 230px; margin-left: 0; }
+#sceneType .key.space .cap, #sceneType .key.space .stem { width: 230px; }
 #sceneType .key.space .cap { background: var(--key); }
-#sceneType .key.back { width: 62px; }
-#sceneType .key.back .cap, #sceneType .key.back .stem { width: 62px; border-radius: 19px; }
-#sceneType .key.back .cap { background: var(--key); font-size: 17px; }
+#sceneType .key.back { width: 62px; margin-left: 0; }
+#sceneType .key.back .cap, #sceneType .key.back .stem { width: 62px; }
+#sceneType .key.back .cap { background: var(--key); font-size: calc(var(--ks) * .447); }
 #sceneType .keyTip {
   position: absolute; left: 700px; top: 528px; width: 130px; text-align: center;
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: #666;
+  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
   opacity: 0; transition: opacity .9s ease; pointer-events: none;
 }
 #sceneType .keyTip.on { opacity: 1; }
@@ -212,7 +209,7 @@ body {
 /* how much of the page is written, and a quiet way to finish early */
 #sceneType .leverTip {
   position: absolute; left: 20px; top: 538px; width: 250px; text-align: center;
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: #666;
+  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
   opacity: 0; transition: opacity .9s ease; pointer-events: none;
 }
 #sceneType .leverTip.on { opacity: 1; }
@@ -232,12 +229,12 @@ body {
 #sceneType .mini i.done { background: #4a4a4a; }
 #sceneType .mini i.now { background: #8a8a8a; }
 #sceneType .finishBtn {
-  font-family: var(--calm); font-style: italic; font-size: 14px; color: #555;
-  background: transparent; border: 1px solid #b4b4b4; border-radius: 16px; padding: 4px 12px;
+  font-family: var(--calm); font-style: italic; font-size: 14px; color: var(--hint);
+  background: transparent; border: 1px solid color-mix(in srgb, var(--hint) 45%, transparent); border-radius: 16px; padding: 4px 12px;
   cursor: pointer; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .8s ease, background .3s ease;
 }
 #sceneType .finishBtn.on { opacity: 1; pointer-events: auto; }
-#sceneType .finishBtn:hover { background: #d8d8d7; }
+#sceneType .finishBtn:hover { background: color-mix(in srgb, var(--hint) 14%, transparent); }
 #sceneType .finishBtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* ================= 3 · sign, fold, keep ================= */
@@ -249,29 +246,111 @@ body {
 #sceneKeep .botHalf { top: 164px; height: 174px; z-index: 2; }
 #sceneKeep .botHalf .inner { position: absolute; left: 0; top: -164px; width: 260px; height: 338px; }
 #sceneKeep .letter svg, #sceneKeep .letter canvas { position: absolute; left: 0; top: 0; width: 260px; height: 338px; }
-#sceneKeep .topBack { position: absolute; left: 13px; top: 13px; width: 224px; height: 151px; background: #dedede; border: 1.5px solid #8a8a8a; display: none; }
+#sceneKeep .topBack { position: absolute; left: 13px; top: 13px; width: 224px; height: 151px; background: #dedede; border: 1.5px solid #8a8a8a; display: none;
+  box-shadow: inset 0 -12px 12px -8px rgba(0,0,0,var(--crease)); }
+/* the shadow along the fold, on the lower half once the top folds over */
+#sceneKeep .crease { position: absolute; left: 13px; top: 0; width: 224px; height: 20px; z-index: 3; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,var(--crease)), rgba(0,0,0,0)); }
+
 #sceneKeep .signZone { position: absolute; left: 13px; top: 180px; width: 224px; height: 135px; cursor: crosshair; z-index: 5; }
 #sceneKeep .grabZone { position: absolute; left: 13px; top: 164px; width: 224px; height: 151px; cursor: grab; display: none; z-index: 5; }
 #sceneKeep .letter.dragging .grabZone { cursor: grabbing; }
-#sceneKeep .desk-slot { position: absolute; left: 250px; top: 496px; width: 400px; height: 5px; border-radius: 3px; background: #bdbdbc; z-index: 1; }
+#sceneKeep .desk-slot { position: absolute; left: 250px; top: 496px; width: 400px; height: 5px; border-radius: 3px; background: var(--desk-slot); z-index: 1; }
 #sceneKeep .drawer-in {
   position: absolute; left: 260px; top: 500px; width: 380px; height: 0; overflow: hidden; z-index: 2;
-  background: linear-gradient(to bottom, #262626, #474747);
+  background: linear-gradient(to bottom, var(--drawer-in-a), var(--drawer-in-b));
   box-shadow: inset 0 8px 12px rgba(0,0,0,.5), inset 10px 0 10px -6px rgba(0,0,0,.35), inset -10px 0 10px -6px rgba(0,0,0,.35);
 }
 #sceneKeep .drawer-content { position: absolute; left: 0; top: -150px; width: 380px; height: 150px; }
 #sceneKeep .drawer-content .letter { z-index: 1; }
 #sceneKeep .drawer-front {
   position: absolute; left: 250px; top: 500px; width: 400px; height: 28px; z-index: 4;
-  background: #cfcfcf; border: 1.5px solid #8a8a8a; border-radius: 3px;
+  background: var(--drawer); border: 1.5px solid var(--drawer-edge); border-radius: 3px;
   box-shadow: 0 3px 6px rgba(0,0,0,.12);
 }
 #sceneKeep .drawer-front::after {
-  content: ""; position: absolute; left: 168px; top: 9px; width: 60px; height: 7px; border-radius: 4px; background: #6e6e6e;
+  content: ""; position: absolute; left: 168px; top: 9px; width: 60px; height: 7px; border-radius: 4px; background: var(--drawer-handle);
 }
 
 @media (prefers-reduced-motion: reduce) {
   #sceneFeed .sheet.ready .corner { animation: none; transform: scale(1.2); }
   #sceneType .gripPulse.on { animation: none; opacity: .4; }
   .scene { transition: opacity 1s ease; }
+}
+
+/* ================= appearance panel (js/look.js) ================= */
+/* One fixed look for the panel itself, so it stays readable whatever the prototype is set to. */
+#lookPanel {
+  --lk-bg: #fbfbfa; --lk-fg: #232323; --lk-muted: #7b7b78; --lk-line: #e2e2df; --lk-field: #f1f1ef; --lk-accent: #2f4f6f;
+  --lk-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 1000;
+  font: 13px/1.4 var(--lk-ui); color: var(--lk-fg); color-scheme: light;
+  pointer-events: none;
+}
+#lookPanel button, #lookPanel input, #lookPanel select, #lookPanel textarea { font: inherit; color: inherit; }
+#lookPanel :focus-visible { outline: 2px solid var(--lk-accent); outline-offset: 1px; }
+#lookPanel .lk-sheet {
+  pointer-events: auto; position: absolute;
+  left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: 292px; display: flex; flex-direction: column;
+  background: var(--lk-bg); border: 1px solid var(--lk-line); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.14);
+  overflow: hidden;
+}
+#lookPanel.collapsed .lk-sheet { display: none; }
+#lookPanel .lk-tab {
+  pointer-events: auto; position: absolute; display: none;
+  left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(12px + env(safe-area-inset-top, 0px));
+  padding: 7px 14px; border-radius: 18px; border: 1px solid var(--lk-line);
+  background: var(--lk-bg); box-shadow: 0 3px 12px rgba(0,0,0,.14); cursor: pointer; letter-spacing: .08em;
+}
+#lookPanel.collapsed .lk-tab { display: block; }
+#lookPanel .lk-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; }
+#lookPanel .lk-head h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .08em; }
+#lookPanel .lk-close, #lookPanel .lk-foot button, #lookPanel .lk-presets button {
+  border: 1px solid var(--lk-line); background: var(--lk-bg); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+}
+#lookPanel .lk-close { color: var(--lk-muted); padding: 3px 9px; }
+#lookPanel button:hover { background: var(--lk-field); }
+#lookPanel .lk-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--lk-line); }
+#lookPanel .lk-presets button[aria-pressed="true"] { background: var(--lk-fg); border-color: var(--lk-fg); color: var(--lk-bg); }
+#lookPanel .lk-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 0 8px; }
+#lookPanel summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
+#lookPanel summary::-webkit-details-marker { display: none; }
+#lookPanel summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s ease; flex: none; }
+#lookPanel details[open] > summary::before { transform: rotate(45deg); }
+#lookPanel .lk-group > summary { padding: 9px 14px; font-weight: 600; }
+#lookPanel .lk-group + .lk-group { border-top: 1px solid var(--lk-line); }
+#lookPanel .lk-group > .lk-body { padding: 2px 14px 12px; display: grid; gap: 10px; }
+#lookPanel .lk-sub { border: 1px solid var(--lk-line); border-radius: 7px; }
+#lookPanel .lk-sub > summary { padding: 7px 10px; color: var(--lk-fg); }
+#lookPanel .lk-sub > .lk-body { padding: 2px 10px 10px; display: grid; gap: 10px; }
+#lookPanel .lk-row label { color: var(--lk-fg); }
+#lookPanel .lk-row.lk-color { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+#lookPanel .lk-pick { display: flex; gap: 6px; align-items: center; }
+#lookPanel input[type=color] { width: 30px; height: 26px; padding: 0; border: 1px solid var(--lk-line); border-radius: 5px; background: none; cursor: pointer; }
+#lookPanel input[type=color]::-webkit-color-swatch-wrapper { padding: 2px; }
+#lookPanel input[type=color]::-webkit-color-swatch { border: none; border-radius: 3px; }
+#lookPanel .lk-hex { width: 78px; padding: 4px 6px; border: 1px solid var(--lk-line); border-radius: 5px; background: var(--lk-field); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; text-transform: lowercase; }
+#lookPanel .lk-hex.bad { border-color: #b4483c; }
+#lookPanel .lk-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+#lookPanel output { font-variant-numeric: tabular-nums; color: var(--lk-accent); font-size: 12px; white-space: nowrap; }
+#lookPanel input[type=range] { width: 100%; margin: 4px 0 0; accent-color: var(--lk-accent); }
+#lookPanel .lk-scale { display: flex; justify-content: space-between; color: var(--lk-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+#lookPanel .lk-row.lk-select { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+#lookPanel select { padding: 4px 6px; border: 1px solid var(--lk-line); border-radius: 5px; background: var(--lk-field); }
+#lookPanel .lk-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--lk-line); }
+#lookPanel .lk-copy { background: var(--lk-fg) !important; color: var(--lk-bg) !important; border-color: var(--lk-fg) !important; }
+#lookPanel .lk-toast { position: absolute; left: 14px; right: 14px; bottom: 58px; padding: 7px 10px; border-radius: 6px; background: var(--lk-fg); color: var(--lk-bg); text-align: center; font-size: 12px; opacity: 0; transform: translateY(4px); transition: opacity .2s ease, transform .2s ease; pointer-events: none; }
+#lookPanel .lk-toast.on { opacity: 1; transform: none; }
+#lookPanel .lk-fallback { margin: 0 14px 12px; height: 90px; resize: vertical; font-size: 11px; border: 1px solid var(--lk-line); border-radius: 6px; }
+/* narrow screens: the panel becomes a sheet along the bottom, and the stage fits above it */
+@media (max-width: 759px) {
+  #lookPanel { top: auto; right: 0; height: 46vh; }
+  #lookPanel .lk-sheet { left: 0; right: 0; top: auto; bottom: 0; width: auto; height: 46vh; border-radius: 12px 12px 0 0; border-bottom: none;
+    padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  #lookPanel .lk-tab { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #lookPanel summary::before, #lookPanel .lk-toast { transition: none; }
 }
