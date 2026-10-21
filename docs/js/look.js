@@ -80,27 +80,20 @@ LP.look = (() => {
   GROUPS.forEach(g => (g.sub || [g]).forEach(sg => sg.items.forEach(it => {
     ALL.push(it); groupOf[it.key] = g.sub ? `${g.title} · ${sg.title}` : g.title;
   })));
-  // settings with no control in the panel (set in SAVED or by a preset)
-  const HIDDEN = { calmFont: 'default' };
-  // the face for the guiding line, hints and buttons (typed text keeps the typewriter face)
-  const FONTS = {
-    gothic: { family: '"Grenze Gotisch", "UnifrakturMaguntia", "Old English Text MT", Georgia, serif', style: 'normal' }
-  };
   // the Original look: the grey prototype as first built (the "Original" preset)
-  const ORIGINAL = { ...Object.fromEntries(ALL.map(it => [it.key, it.def])), ...HIDDEN };
+  const ORIGINAL = Object.fromEntries(ALL.map(it => [it.key, it.def]));
 
   const allPapers = (o) => Object.fromEntries(PAPERS.flatMap(([p]) => Object.entries(o).map(([k, v]) => [p + k, typeof v === 'object' ? v[p] : v])));
-  // the saved defaults: a gothic look (near-black, aged parchment, blood-red rules and signature, brass, blackletter guide text)
+  // the saved defaults: a fresh look (pale mint, clean white papers with mint rules and a coral margin, sage body, cream keys, soft teal ink)
   const SAVED = {
-    calmFont: 'gothic', bg: '#120d12', guideColor: '#c9b48a', guideSize: 25, hintColor: '#8f7a66', glowColor: '#b0182b', glowK: 170,
-    ...allPapers({ Base: { plain: '#d9ccb0', lined: '#d3c4a6', grid: '#cfc0a2', translucent: '#e6dcc6' }, Border: '#3b2a2a', Radius: 0,
-      Shadow: { plain: 55, lined: 55, grid: 55, translucent: 35 }, ShadowOff: 7,
-      Texture: { plain: 'stain', lined: 'grain', grid: 'linen', translucent: 'grain' }, TexK: { plain: 35, lined: 40, grid: 35, translucent: 25 } }),
-    transAlpha: 88, lineColor: '#8c2a2f', marginColor: '#5a0f16', gridColor: '#a08870',
-    bodyColor: '#2c2228', platenColor: '#17110f', stripeK: 12, leverColor: '#6b5530', barColor: '#2b2125', trackColor: '#6b5530',
-    keyColor: '#151113', keyEdge: '#6b5530', keyLabel: '#c9b48a',
-    typeColor: '#2a0a10', inkUneven: 35, typeSkew: .8, sigColor: '#7a0f1c', sigWidth: 4.6,
-    deskColor: '#1a1316', drawerColor: '#3a2226', creaseK: 40
+    bg: '#e6f0ea', guideColor: '#5f7d70', hintColor: '#7f9a8e', glowColor: '#f4fff9', glowK: 120,
+    ...allPapers({ Base: { plain: '#fdfefc', lined: '#fbfdf9', grid: '#fafcfb', translucent: '#f2fbff' }, Border: '#b8cfc3', Radius: 6,
+      Shadow: { plain: 10, lined: 10, grid: 10, translucent: 4 }, ShadowOff: 3 }),
+    transAlpha: 60, lineColor: '#bfe0d6', marginColor: '#f2b8b0', gridColor: '#cfe3ea',
+    bodyColor: '#a9c4b8', platenColor: '#6f8f84', stripeK: 10, leverColor: '#7d9a90', barColor: '#8aa79c', trackColor: '#b7cdc3',
+    keyColor: '#f7f4ec', keyEdge: '#b9cdc2', keyLabel: '#5f7d70',
+    typeColor: '#3f6b66', inkUneven: 15, typeSkew: .3, sigColor: '#4f7f88', sigWidth: 3.6,
+    deskColor: '#eef3ea', drawerColor: '#cfe2d8', creaseK: 10
   };
   const DEFAULTS = { ...ORIGINAL, ...SAVED };
   const META = Object.fromEntries(ALL.map(it => [it.key, it]));
@@ -136,7 +129,7 @@ LP.look = (() => {
   ];
 
   // ---------- storage ----------
-  const STORE = 'lp-look-v2', UI_STORE = 'lp-look-ui-v1';   // v2: Gothic became the saved default
+  const STORE = 'lp-look-v3', UI_STORE = 'lp-look-ui-v1';   // v3: Fresh became the saved default
   const read = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -259,9 +252,6 @@ LP.look = (() => {
   function applyVars() {
     const V = values, set = (k, val) => root.style.setProperty(k, val);
     set('--bg', V.bg);
-    const font = FONTS[V.calmFont];
-    if (font) { set('--calm', font.family); set('--calm-style', font.style); }
-    else { root.style.removeProperty('--calm'); root.style.removeProperty('--calm-style'); }
     set('--guide', V.guideColor); set('--guide-size', V.guideSize + 'px');
     set('--hint', V.hintColor);
     set('--glow', V.glowColor); set('--glow-k', V.glowK / 100);
@@ -419,7 +409,6 @@ LP.look = (() => {
       if (it.type === 'select') v = `${(it.options.find(o => o[0] === v) || [, v])[1]} (${v})`;
       lines.push(`${it.label} (${it.key}): ${v}`);
     }
-    lines.push('', `Guide and hint font (calmFont, no panel control): ${values.calmFont}`);
     lines.push('', 'Set these values as the prototype\'s saved defaults. Keep the panel code for future adjustments. Commit and push the changes.');
     return lines.join('\n');
   }
